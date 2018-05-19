@@ -69,7 +69,7 @@ int main(void)
     struct session_op sess;
     struct crypt_op cryp;
 
-    int cfd = open("/dev/crypto");
+    int cfd = open("/dev/crypto", O_RDWR);
 	
 	/* Make sure a broken connection doesn't kill us */
 	signal(SIGPIPE, SIG_IGN);

@@ -56,7 +56,7 @@ ssize_t insist_write(int fd, const void *buf, size_t cnt)
 
 int main(void)
 {
-	char buf[100];
+	char buf[DATA_SIZE];
 	char addrstr[INET_ADDRSTRLEN];
 	int sd, newsd;
 	ssize_t n;
@@ -169,7 +169,7 @@ int main(void)
                     } data;
 
                     cryp.ses = sess.ses;
-                    cryp.len = n;
+                    cryp.len = DATA_SIZE;
                     cryp.src = (unsigned char *)buf;
                     cryp.dst = data.encrypted;
                     cryp.iv = IV;

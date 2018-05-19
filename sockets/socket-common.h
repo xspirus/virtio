@@ -19,8 +19,8 @@
 #define KEY_SIZE    16
 #define BLOCK_SIZE  16
 
-unsigned char KEY[] = "B2D996CA64772FFD";
-unsigned char IV[]  = "B2B95343EA01B4C6";
+unsigned char *KEY = "B2D996CA64772FFD";
+unsigned char *IV  = "B2B95343EA01B4C6";
 
 #endif /* _SOCKET_COMMON_H */
 

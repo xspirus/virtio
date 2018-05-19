@@ -168,10 +168,9 @@ int main(void)
                                     key[KEY_SIZE];
                     } data;
 
-                    strncpy((char *)data.in, buf, n);
                     cryp.ses = sess.ses;
                     cryp.len = n;
-                    cryp.src = data.in;
+                    cryp.src = (unsigned char *)buf;
                     cryp.dst = data.encrypted;
                     cryp.iv = IV;
                     cryp.op = COP_ENCRYPT;

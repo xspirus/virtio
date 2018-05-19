@@ -95,7 +95,7 @@ int main(void)
 
     sess.cipher = CRYPTO_AES_CBC;
     sess.keylen = KEY_SIZE;
-    sess.key = KEY;
+    sess.key = (unsigned char *)KEY;
 
 	if (ioctl(cfd, CIOCGSESSION, &sess)) {
 		perror("ioctl(CIOCGSESSION)");
@@ -166,12 +166,12 @@ int main(void)
                                     key[KEY_SIZE];
                     } data;
 
-                    strncpy(data.in, buf, n);
+                    strncpy((char *)data.in, buf, n);
                     cryp.ses = sess.ses;
                     cryp.len = n;
                     cryp.src = data.in;
                     cryp.dst = data.encrypted;
-                    cryp.iv = IV;
+                    cryp.iv = (unsigned char *)IV;
                     cryp.op = COP_ENCRYPT;
 
                     if (ioctl(cfd, CIOCCRYPT, &cryp)) {

@@ -68,6 +68,8 @@ int main(void)
      */
     struct session_op sess;
     struct crypt_op cryp;
+
+    int cfd = open("/dev/crypto");
 	
 	/* Make sure a broken connection doesn't kill us */
 	signal(SIGPIPE, SIG_IGN);
@@ -171,7 +173,7 @@ int main(void)
                     cryp.len = n;
                     cryp.src = data.in;
                     cryp.dst = data.encrypted;
-                    cryp.iv = (unsigned char *)IV;
+                    cryp.iv = IV;
                     cryp.op = COP_ENCRYPT;
 
                     if (ioctl(cfd, CIOCCRYPT, &cryp)) {

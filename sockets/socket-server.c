@@ -21,6 +21,8 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 
+#include <crypto/cryptodev.h>
+
 #include "socket-common.h"
 
 /* Convert a buffer to upercase */
@@ -57,6 +59,12 @@ int main(void)
 	ssize_t n;
 	socklen_t len;
 	struct sockaddr_in sa;
+
+    /**
+     * Crypto
+     */
+    struct session_op sess;
+    struct crypt_op cryp;
 	
 	/* Make sure a broken connection doesn't kill us */
 	signal(SIGPIPE, SIG_IGN);
@@ -78,6 +86,18 @@ int main(void)
 		exit(1);
 	}
 	fprintf(stderr, "Bound TCP socket to port %d\n", TCP_PORT);
+
+    memset(&sess, 0, sizeof(sess));
+    memset(&cryp, 0, sizeof(cryp));
+
+    sess.cipher = CRYPTO_AES_CBC;
+    sess.keylen = KEY_SIZE;
+    sess.key = KEY;
+
+	if (ioctl(cfd, CIOCGSESSION, &sess)) {
+		perror("ioctl(CIOCGSESSION)");
+		return 1;
+	}
 
 	/* Listen for incoming connections */
 	if (listen(sd, TCP_BACKLOG) < 0) {
@@ -135,7 +155,28 @@ int main(void)
                     if (n <= 0)
                         break;
 
-                    if (insist_write(newsd, buf, n) != n) {
+                    struct {
+                        unsigned char in[DATA_SIZE],
+                                    encrypted[DATA_SIZE],
+                                    decrypted[DATA_SIZE],
+                                    iv[BLOCK_SIZE],
+                                    key[KEY_SIZE];
+                    } data;
+
+                    strncpy(data.in, buf, n);
+                    cryp.ses = sess.ses;
+                    cryp.len = n;
+                    cryp.src = data.in;
+                    cryp.dst = data.encrypted;
+                    cryp.iv = IV;
+                    cryp.op = COP_ENCRYPT;
+
+                    if (ioctl(cfd, CIOCCRYPT, &cryp)) {
+                        perror("ioctl(CIOCCRYPT)");
+                        return 1;
+                    }
+
+                    if (insist_write(newsd, data.encrypted, n) != n) {
                         perror("write");
                         exit(1);
                     }

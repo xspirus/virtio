@@ -56,7 +56,7 @@ ssize_t insist_write(int fd, const void *buf, size_t cnt)
 
 int main(void)
 {
-	char buf[DATA_SIZE];
+	unsigned char buf[DATA_SIZE];
 	char addrstr[INET_ADDRSTRLEN];
 	int sd, newsd;
 	ssize_t n;
@@ -69,7 +69,7 @@ int main(void)
     struct session_op sess;
     struct crypt_op cryp;
 
-    int cfd = open("/dev/crypto", O_RDWR);
+    int cfd = open("/dev/crypto", O_RDONLY);
 	
 	/* Make sure a broken connection doesn't kill us */
 	signal(SIGPIPE, SIG_IGN);
@@ -97,12 +97,16 @@ int main(void)
 
     sess.cipher = CRYPTO_AES_CBC;
     sess.keylen = KEY_SIZE;
-    sess.key = (unsigned char *)KEY;
+    sess.key = KEY;
 
 	if (ioctl(cfd, CIOCGSESSION, &sess)) {
 		perror("ioctl(CIOCGSESSION)");
 		return 1;
 	}
+
+    cryp.ses = sess.ses;
+    cryp.len = DATA_SIZE;
+    cryp.iv = IV;
 
 	/* Listen for incoming connections */
 	if (listen(sd, TCP_BACKLOG) < 0) {
@@ -129,7 +133,6 @@ int main(void)
 
         int activity;
         int end = 0;
-        fflush(stdout);
         for (;;) {
             fd_set readfds;
 
@@ -168,17 +171,46 @@ int main(void)
                                     key[KEY_SIZE];
                     } data;
 
-                    cryp.ses = sess.ses;
-                    cryp.len = DATA_SIZE;
-                    cryp.src = (unsigned char *)buf;
+                    int j;
+                    fprintf(stderr, "\nMy key is :\n");
+                    for (j = 0; j < KEY_SIZE; j++)
+                        fprintf(stderr, "%x", sess.key[j]);
+                    fprintf(stderr, "\n");
+                    fprintf(stderr, "\nMy IV is :\n");
+                    for (j = 0; j < BLOCK_SIZE; j++)
+                        fprintf(stderr, "%x", cryp.iv[j]);
+                    fprintf(stderr, "\n");
+
+                    cryp.src = buf;
                     cryp.dst = data.encrypted;
-                    cryp.iv = IV;
                     cryp.op = COP_ENCRYPT;
 
                     if (ioctl(cfd, CIOCCRYPT, &cryp)) {
                         perror("ioctl(CIOCCRYPT)");
                         return 1;
                     }
+
+                    cryp.src = data.encrypted;
+                    cryp.dst = data.decrypted;
+                    cryp.op = COP_DECRYPT;
+
+                    if (ioctl(cfd, CIOCCRYPT, &cryp)) {
+                        perror("ioctl(CIOCCRYPT)");
+                        return 1;
+                    }
+
+                    fprintf(stderr, "\nTo encrypt :\n");
+                    for (j = 0; j < n; j++)
+                        fprintf(stderr, "%x", buf[j]);
+                    fprintf(stderr, "\n");
+                    fprintf(stderr, "\nEncrypted :\n");
+                    for (j = 0; j < n; j++)
+                        fprintf(stderr, "%x", data.encrypted[j]);
+                    fprintf(stderr, "\n");
+                    fprintf(stderr, "\nDecrypted esoterically :\n");
+                    for (j = 0; j < n; j++)
+                        fprintf(stderr, "%x", data.decrypted[j]);
+                    fprintf(stderr, "\n");
 
                     if (insist_write(newsd, data.encrypted, n) != n) {
                         perror("write");
@@ -211,16 +243,46 @@ int main(void)
                     if (i == 0) {
                         fprintf(stdout, "\nOther : ");
                         fflush(stdout);
+                        i++;
                     }
 
-                    if (insist_write(1, buf, n) != n) {
+                    struct {
+                        unsigned char in[DATA_SIZE],
+                                    encrypted[DATA_SIZE],
+                                    decrypted[DATA_SIZE],
+                                    iv[BLOCK_SIZE],
+                                    key[KEY_SIZE];
+                    } data;
+
+                    cryp.src = buf;
+                    cryp.dst = data.decrypted;
+                    cryp.op = COP_DECRYPT;
+
+                    int j;
+                    fprintf(stderr, "\nTo decrypt :\n");
+                    for (j = 0; j < n; j++)
+                        fprintf(stderr, "%x", buf[j]);
+                    fprintf(stderr, "\n");
+                    fprintf(stderr, "\nDecrypted :\n");
+                    for (j = 0; j < n; j++)
+                        fprintf(stderr, "%x", data.decrypted[j]);    
+                    fprintf(stderr, "\n");
+
+                    if (ioctl(cfd, CIOCCRYPT, &cryp)) {
+                        perror("ioctl(CIOCCRYPT)");
+                        return 1;
+                    }
+
+                    if (insist_write(1, data.decrypted, n) != n) {
                         perror("write");
                         exit(1);
                     }
 
-                    if (buf[n - 1] == '\n')
+                    if (data.decrypted[n - 1] == '\n')
                         break;
                 }
+                fprintf(stdout, "\n");
+                fflush(stdout);
             }
             if (end) {
                 fprintf(stderr, "\nPeer went away\n");

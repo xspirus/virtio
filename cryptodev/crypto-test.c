@@ -62,8 +62,8 @@ static int fill_urandom_buf(unsigned char *buf, size_t cnt)
 static int test_crypto(int cfd)
 {
 	int i = -1;
-	struct session_op sess;
-	struct crypt_op cryp;
+	struct session_op sess, sess1;
+	struct crypt_op cryp, cryp1;
 	struct {
 		unsigned char 	in[DATA_SIZE],
 				encrypted[DATA_SIZE],
@@ -73,7 +73,9 @@ static int test_crypto(int cfd)
 	} data;
 
 	memset(&sess, 0, sizeof(sess));
+	memset(&sess1, 0, sizeof(sess1));
 	memset(&cryp, 0, sizeof(cryp));
+	memset(&cryp1, 0, sizeof(cryp1));
 	
 
 	/*
@@ -96,9 +98,14 @@ static int test_crypto(int cfd)
 		return 1;
 	}
 
+    unsigned char key[] = "ABCDEFGHIJKLMNOPQR";
+    unsigned char toEncrypt[DATA_SIZE];
+    char *test = "Eisai noobas\n";
+    strncpy((char *)toEncrypt, test, 13);
+
 	printf("\nOriginal data:\n");
 	for (i = 0; i < DATA_SIZE; i++)
-		printf("%x", data.in[i]);
+		printf("%c", toEncrypt[i]);
 	printf("\n");
 
 	/*
@@ -106,9 +113,18 @@ static int test_crypto(int cfd)
 	 */
 	sess.cipher = CRYPTO_AES_CBC;
 	sess.keylen = KEY_SIZE;
-	sess.key = data.key;
+	sess.key = key;
+
+	sess1.cipher = CRYPTO_AES_CBC;
+	sess1.keylen = KEY_SIZE;
+	sess1.key = key;
 
 	if (ioctl(cfd, CIOCGSESSION, &sess)) {
+		perror("ioctl(CIOCGSESSION)");
+		return 1;
+	}
+    int cfd1 = open("/dev/crypto", O_RDONLY);
+	if (ioctl(cfd1, CIOCGSESSION, &sess1)) {
 		perror("ioctl(CIOCGSESSION)");
 		return 1;
 	}
@@ -117,8 +133,8 @@ static int test_crypto(int cfd)
 	 * Encrypt data.in to data.encrypted
 	 */
 	cryp.ses = sess.ses;
-	cryp.len = sizeof(data.in);
-	cryp.src = data.in;
+	cryp.len = DATA_SIZE;
+	cryp.src = toEncrypt;
 	cryp.dst = data.encrypted;
 	cryp.iv = data.iv;
 	cryp.op = COP_ENCRYPT;
@@ -137,17 +153,20 @@ static int test_crypto(int cfd)
 	/*
 	 * Decrypt data.encrypted to data.decrypted
 	 */
-	cryp.src = data.encrypted;
-	cryp.dst = data.decrypted;
-	cryp.op = COP_DECRYPT;
-	if (ioctl(cfd, CIOCCRYPT, &cryp)) {
-		perror("ioctl(CIOCCRYPT)");
+    cryp1.ses = sess1.ses;
+	cryp1.len = DATA_SIZE;
+	cryp1.src = data.encrypted;
+	cryp1.dst = data.decrypted;
+	cryp1.iv = data.iv;
+	cryp1.op = COP_DECRYPT;
+	if (ioctl(cfd1, CIOCCRYPT, &cryp1)) {
+		perror("ioctl(CIOCCRYPT) decrypt");
 		return 1;
 	}
 
 	printf("\nDecrypted data:\n");
 	for (i = 0; i < DATA_SIZE; i++) {
-		printf("%x", data.decrypted[i]);
+		printf("%c", data.decrypted[i]);
 	}
 	printf("\n");
 

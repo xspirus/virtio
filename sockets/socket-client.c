@@ -136,6 +136,10 @@ int main(int argc, char *argv[])
                     exit(1);
                 }
 
+                int k;
+                for (k = n; k < DATA_SIZE; k++)
+                    buf[k] = 0;
+
                 if (n <= 0)
                     break;
 
@@ -156,17 +160,7 @@ int main(int argc, char *argv[])
                     return 1;
                 }
 
-                int j;
-                fprintf(stderr, "\nTo encrypt :\n");
-                for (j = 0; j < n; j++)
-                    fprintf(stderr, "%x", buf[j]);
-                fprintf(stderr, "\n");
-                fprintf(stderr, "\nEncrypted :\n");
-                for (j = 0; j < n; j++)
-                    fprintf(stderr, "%x", data.encrypted[j]);
-                fprintf(stderr, "\n");
-
-                if (insist_write(sd, data.encrypted, n) != n) {
+                if (insist_write(sd, data.encrypted, DATA_SIZE) != DATA_SIZE) {
                     perror("write");
                     exit(1);
                 }
@@ -213,48 +207,21 @@ int main(int argc, char *argv[])
                     return 1;
                 }
 
-                cryp.src = data.decrypted;
-                cryp.dst = data.encrypted;
-                cryp.op = COP_ENCRYPT;
-
-                if (ioctl(cfd, CIOCCRYPT, &cryp)) {
-                    perror("ioctl(CIOCCRYPT)");
-                    return 1;
-                }
-
-                int j;
-                fprintf(stderr, "\nMy key is :\n");
-                for (j = 0; j < KEY_SIZE; j++)
-                    fprintf(stderr, "%x", sess.key[j]);
-                fprintf(stderr, "\n");
-                fprintf(stderr, "\nMy IV is :\n");
-                for (j = 0; j < BLOCK_SIZE; j++)
-                    fprintf(stderr, "%x", cryp.iv[j]);
-                fprintf(stderr, "\n");
-                 
-                fprintf(stderr, "\nTo decrypt :\n");
-                for (j = 0; j < n; j++)
-                    fprintf(stderr, "%x", buf[j]);
-                fprintf(stderr, "\n");
-                fprintf(stderr, "\nDecrypted :\n");
-                for (j = 0; j < n; j++)
-                    fprintf(stderr, "%x", data.decrypted[j]);    
-                fprintf(stderr, "\n");
-                fprintf(stderr, "\nEncrypted esoterically :\n");
-                for (j = 0; j < n; j++)
-                    fprintf(stderr, "%x", data.encrypted[j]);    
-                fprintf(stderr, "\n");
-
                 if (insist_write(1, data.decrypted, n) != n) {
                     perror("write");
                     exit(1);
                 }
 
-                if (data.decrypted[n - 1] == '\n')
+                int j, found = 0;
+                for (j = 0; j < DATA_SIZE; j++) {
+                    if (data.decrypted[j] == '\n') {
+                        found = 1;
+                        break;
+                    }
+                }
+                if (found)
                     break;
             }
-            fprintf(stdout, "\n");
-            fflush(stdout);
         }
 
     }

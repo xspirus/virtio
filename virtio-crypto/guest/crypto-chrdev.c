@@ -69,7 +69,9 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
 #define MSG_LEN 100
     unsigned char *msg;
 	int *host_fd;
-    struct scatterlist *sgs[2];
+    struct scatterlist syscall_type_sg,
+                       host_fd_sg,
+                       *sgs[2];
 
 	debug("Entering");
 
@@ -106,10 +108,13 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
 	 * file descriptor from the host.
 	 **/
 	/* ?? */
-	sg_init_one(sgs[0], syscall_type, sizeof(*syscall_type));
+	sg_init_one(&syscall_type_sg, syscall_type, sizeof(*syscall_type));
     debug("Syscall init one good");
-	sg_init_one(sgs[1], host_fd, sizeof(*host_fd));
+	sg_init_one(&host_fd_sg, &crof->host_fd, MSG_LEN);
     debug("Init sg fd good");
+
+    sgs[0] = &syscall_type_sg;
+    sgs[1] = &host_fd_sg;
 
 	/**
 	 * Wait for the host to process our data.
@@ -141,7 +146,9 @@ static int crypto_chrdev_release(struct inode *inode, struct file *filp)
 	struct crypto_device *crdev = crof->crdev;
 	unsigned int *syscall_type;
     unsigned int len;
-    struct scatterlist *sgs[2];
+    struct scatterlist syscall_type_sg,
+                       host_fd_sg,
+                       *sgs[2];
 
 	debug("Entering");
 
@@ -152,8 +159,11 @@ static int crypto_chrdev_release(struct inode *inode, struct file *filp)
 	 * Send data to the host.
 	 **/
 	/* ?? */
-	sg_init_one(sgs[0], syscall_type, sizeof(*syscall_type));
-	sg_init_one(sgs[1], &crof->host_fd, MSG_LEN);
+	sg_init_one(&syscall_type_sg, syscall_type, sizeof(*syscall_type));
+	sg_init_one(&host_fd_sg, &crof->host_fd, MSG_LEN);
+
+    sgs[0] = &syscall_type_sg;
+    sgs[1] = &host_fd_sg;
 
     err = virtqueue_add_sgs(crdev->vq, sgs, 2, 0, sgs[0], GFP_ATOMIC);
     virtqueue_kick(crdev->vq);

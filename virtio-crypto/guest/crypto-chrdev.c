@@ -110,7 +110,7 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
 	/* ?? */
 	sg_init_one(&syscall_type_sg, syscall_type, sizeof(*syscall_type));
     debug("Syscall init one good");
-	sg_init_one(&host_fd_sg, &crof->host_fd, MSG_LEN);
+	sg_init_one(&host_fd_sg, host_fd, sizeof(*host_fd));
     debug("Init sg fd good");
 
     sgs[0] = &syscall_type_sg;

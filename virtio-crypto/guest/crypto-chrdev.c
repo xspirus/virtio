@@ -66,6 +66,8 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
 	struct crypto_open_file *crof;
 	struct crypto_device *crdev;
 	unsigned int *syscall_type;
+#define MSG_LEN 100
+    unsigned char *msg;
 	int *host_fd;
 
 	debug("Entering");
@@ -74,6 +76,7 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
 	*syscall_type = VIRTIO_CRYPTO_SYSCALL_OPEN;
 	host_fd = kzalloc(sizeof(*host_fd), GFP_KERNEL);
 	*host_fd = -1;
+	msg = kzalloc(MSG_LEN, GFP_KERNEL);
 
 	ret = -ENODEV;
 	if ((ret = nonseekable_open(inode, filp)) < 0)
@@ -102,16 +105,27 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
 	 * file descriptor from the host.
 	 **/
 	/* ?? */
+    msg[0] = '\0'
+    struct scatterlist sgs[2];
+	sg_init_one(&sgs[0], syscall_type, sizeof(*syscall_type));
+	sg_init_one(&sgs[1], &msg, MSG_LEN);
 
 	/**
 	 * Wait for the host to process our data.
 	 **/
 	/* ?? */
-
+    err = virtqueue_add_sgs(crof->crdev->vq, sgs, 1, 1, &sg[0], GFP_ATOMIC);
+    virtqueue_kick(crof->crdev->vq);
 
 	/* If host failed to open() return -ENODEV. */
 	/* ?? */
-		
+    while (virtqueue_get_buf(crof->crdev->vq, &len) == NULL)
+        /* do nothing */ ;
+
+    crof->host_fd = atoi(msg);
+
+    if (crof->host_fd == -1)
+        return -ENODEV;
 
 fail:
 	debug("Leaving");
@@ -124,6 +138,7 @@ static int crypto_chrdev_release(struct inode *inode, struct file *filp)
 	struct crypto_open_file *crof = filp->private_data;
 	struct crypto_device *crdev = crof->crdev;
 	unsigned int *syscall_type;
+    unsigned int len;
 
 	debug("Entering");
 
@@ -134,11 +149,19 @@ static int crypto_chrdev_release(struct inode *inode, struct file *filp)
 	 * Send data to the host.
 	 **/
 	/* ?? */
+    struct scatterlist sgs[2];
+	sg_init_one(&sgs[0], syscall_type, sizeof(*syscall_type));
+	sg_init_one(&sgs[1], &crof->host_fd, MSG_LEN);
+
+    err = virtqueue_add_sgs(crdev->vq, sgs, 2, 0, &sgs[0], GFP_ATOMIC);
+    virtqueue_kick(crdev->vq);
 
 	/**
 	 * Wait for the host to process our data.
 	 **/
 	/* ?? */
+    while (virtqueue_get_buf(crdev->vq, &len) == NULL)
+        /* do nothing */ ;
 
 	kfree(crof);
 	debug("Leaving");

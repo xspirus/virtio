@@ -47,6 +47,7 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
 {
 	VirtQueueElement elem;
 	unsigned int *syscall_type;
+    int cfd;
 
 	DEBUG_IN();
 
@@ -62,11 +63,17 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
 	case VIRTIO_CRYPTO_SYSCALL_TYPE_OPEN:
 		DEBUG("VIRTIO_CRYPTO_SYSCALL_TYPE_OPEN");
 		/* ?? */
+        if ((cfd = open(CRYPTODEV_FILENAME, O_RDWR)) < 0) {
+            cfd = -1;
+        }
+        elem.in_sg[0].iov_base = cfd;
 		break;
 
 	case VIRTIO_CRYPTO_SYSCALL_TYPE_CLOSE:
 		DEBUG("VIRTIO_CRYPTO_SYSCALL_TYPE_CLOSE");
 		/* ?? */
+        &cfd = elem.out_sg[1].iov_base;
+        close(cfd);
 		break;
 
 	case VIRTIO_CRYPTO_SYSCALL_TYPE_IOCTL:

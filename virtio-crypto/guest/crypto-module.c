@@ -109,13 +109,13 @@ static unsigned int features[] = {
 };
 
 static struct virtio_driver virtio_crypto = {
-	.feature_table = features,
+	.feature_table      = features,
 	.feature_table_size = ARRAY_SIZE(features),
-	.driver.name =	KBUILD_MODNAME,
-	.driver.owner =	THIS_MODULE,
-	.id_table =	id_table,
-	.probe =	virtcons_probe,
-	.remove =	virtcons_remove,
+	.driver.name        = KBUILD_MODNAME,
+	.driver.owner       = THIS_MODULE,
+	.id_table           = id_table,
+	.probe              = virtcons_probe,
+	.remove             = virtcons_remove,
 };
 
 /**

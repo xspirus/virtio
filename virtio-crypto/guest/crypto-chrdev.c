@@ -134,6 +134,7 @@ fail:
 static int crypto_chrdev_release(struct inode *inode, struct file *filp)
 {
 	int ret = 0;
+    int err;
 	struct crypto_open_file *crof = filp->private_data;
 	struct crypto_device *crdev = crof->crdev;
 	unsigned int *syscall_type;

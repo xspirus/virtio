@@ -66,6 +66,7 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
         if ((cfd = open(CRYPTODEV_FILENAME, O_RDWR)) < 0) {
             cfd = -1;
         }
+        DEBUG("opened file descriptor");
         elem.in_sg[0].iov_base = &cfd;
 		break;
 

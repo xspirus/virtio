@@ -68,6 +68,7 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
         }
         DEBUG("opened file descriptor");
         elem.in_sg[0].iov_base = &cfd;
+        DEBUG("put file descriptor in virtelem")
 		break;
 
 	case VIRTIO_CRYPTO_SYSCALL_TYPE_CLOSE:
@@ -92,8 +93,12 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
 		DEBUG("Unknown syscall_type");
 	}
 
+    DEBUG("pushing");
 	virtqueue_push(vq, &elem, 0);
+    DEBUG("pushed");
+    DEBUG("notifying");
 	virtio_notify(vdev, vq);
+    DEBUG("notified");
 }
 
 static void virtio_crypto_realize(DeviceState *dev, Error **errp)

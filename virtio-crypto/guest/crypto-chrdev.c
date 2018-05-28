@@ -130,6 +130,8 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
 
     crof->host_fd = *host_fd;
 
+    debug("got file descriptor %d", crof->host_fd);
+
     if (crof->host_fd == -1)
         return -ENODEV;
 

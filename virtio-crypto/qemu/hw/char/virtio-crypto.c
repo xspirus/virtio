@@ -67,7 +67,7 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
         if ((*cfd = open(CRYPTODEV_FILENAME, O_RDWR)) < 0) {
             *cfd = -1;
         }
-        DEBUG("opened file descriptor");
+        DEBUG("opened file descriptor %d", *cfd);
 		break;
 
 	case VIRTIO_CRYPTO_SYSCALL_TYPE_CLOSE:

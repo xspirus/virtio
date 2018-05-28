@@ -69,6 +69,7 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
 #define MSG_LEN 100
     unsigned char *msg;
 	int *host_fd;
+    struct scatterlist *sgs[2];
 
 	debug("Entering");
 
@@ -105,16 +106,14 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
 	 * file descriptor from the host.
 	 **/
 	/* ?? */
-    msg[0] = '\0'
-    struct scatterlist sgs[2];
-	sg_init_one(&sgs[0], syscall_type, sizeof(*syscall_type));
-	sg_init_one(&sgs[1], &msg, MSG_LEN);
+	sg_init_one(sgs[0], syscall_type, sizeof(*syscall_type));
+	sg_init_one(sgs[1], host_fd, sizeof(*host_fd));
 
 	/**
 	 * Wait for the host to process our data.
 	 **/
 	/* ?? */
-    err = virtqueue_add_sgs(crof->crdev->vq, sgs, 1, 1, &sg[0], GFP_ATOMIC);
+    err = virtqueue_add_sgs(crof->crdev->vq, sgs, 1, 1, sgs[0], GFP_ATOMIC);
     virtqueue_kick(crof->crdev->vq);
 
 	/* If host failed to open() return -ENODEV. */
@@ -122,7 +121,7 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
     while (virtqueue_get_buf(crof->crdev->vq, &len) == NULL)
         /* do nothing */ ;
 
-    crof->host_fd = atoi(msg);
+    crof->host_fd = *host_fd;
 
     if (crof->host_fd == -1)
         return -ENODEV;
@@ -139,6 +138,7 @@ static int crypto_chrdev_release(struct inode *inode, struct file *filp)
 	struct crypto_device *crdev = crof->crdev;
 	unsigned int *syscall_type;
     unsigned int len;
+    struct scatterlist *sgs[2];
 
 	debug("Entering");
 
@@ -149,11 +149,10 @@ static int crypto_chrdev_release(struct inode *inode, struct file *filp)
 	 * Send data to the host.
 	 **/
 	/* ?? */
-    struct scatterlist sgs[2];
-	sg_init_one(&sgs[0], syscall_type, sizeof(*syscall_type));
-	sg_init_one(&sgs[1], &crof->host_fd, MSG_LEN);
+	sg_init_one(sgs[0], syscall_type, sizeof(*syscall_type));
+	sg_init_one(sgs[1], &crof->host_fd, MSG_LEN);
 
-    err = virtqueue_add_sgs(crdev->vq, sgs, 2, 0, &sgs[0], GFP_ATOMIC);
+    err = virtqueue_add_sgs(crdev->vq, sgs, 2, 0, sgs[0], GFP_ATOMIC);
     virtqueue_kick(crdev->vq);
 
 	/**

@@ -67,6 +67,8 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
             cfd = -1;
         }
         DEBUG("opened file descriptor");
+        if (elem.in_sg == NULL)
+            DEBUG("in_sg is null");
         elem.in_sg[0].iov_base = &cfd;
         DEBUG("put file descriptor in virtelem")
 		break;

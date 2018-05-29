@@ -232,6 +232,10 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
     sg_init_one(&ioctl_cmd_sg, &cmd, sizeof(cmd));
     sgs[num_out++] = &ioctl_cmd_sg;
 
+    debug("syscall_type_sg %p", (void *)&syscall_type_sg);
+    debug("host_fd_sg %p", (void *)&host_fd_sg);
+    debug("ioctl_cmd_sg %p", (void *)&ioctl_cmd_sg);
+
 	/**
 	 *  Add all the cmd specific sg lists.
 	 **/
@@ -334,6 +338,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
     for (err = 0; err < 8; err++) {
         if (sgs[err] == NULL)
             debug("sgs[%d] is null", err);
+        debug("sgs[%d] has address %p", err, (void *)sgs[err]);
     }
 	/* err = virtqueue_add_sgs(vq, sgs, num_out, num_in, */
 							/* &syscall_type_sg, GFP_ATOMIC); */

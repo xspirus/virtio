@@ -329,11 +329,11 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 	/* ?? */
 	/* ?? Lock ?? */
     debug("num out %d num in %d", num_out, num_in);
-	err = virtqueue_add_sgs(vq, sgs, num_out, num_in,
-	                        &syscall_type_sg, GFP_ATOMIC);
-	virtqueue_kick(vq);
-	while (virtqueue_get_buf(vq, &len) == NULL)
-		/* do nothing */;
+	/* err = virtqueue_add_sgs(vq, sgs, num_out, num_in, */
+							/* &syscall_type_sg, GFP_ATOMIC); */
+	/* virtqueue_kick(vq); */
+	/* while (virtqueue_get_buf(vq, &len) == NULL) */
+		/* [> do nothing <]; */
 
 	/* debug("We said: '%s'", src); */
 	/* debug("Host answered: '%s'", dst); */

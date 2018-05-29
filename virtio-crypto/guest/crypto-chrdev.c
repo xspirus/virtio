@@ -249,6 +249,8 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
             debug("sess is null");
         /* copy_from_user(sess, (struct session_op *) arg, sizeof(struct session_op)); */
         key  = (unsigned char *) sess->key;
+        if (key == NULL)
+            debug("key is null");
         sg_init_one(&session_key_sg, key, sess->keylen);
         /* sgs[num_out++] = &session_key_sg; */
         sg_init_one(&session_op_sg, sess, sizeof(*sess));
@@ -297,6 +299,12 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         src  = (unsigned char *) cryp->src;
         dst  = (unsigned char *) cryp->dst;
         iv   = (unsigned char *) cryp->iv;
+        if (src == NULL)
+            debug("source is null");
+        if (dst == NULL)
+            debug("dst is null");
+        if (iv == NULL)
+            debug("iv is null");
         sg_init_one(&crypt_op_sg, cryp, sizeof(*cryp));
         /* sgs[num_out++] = &crypt_op_sg; */
         sg_init_one(&src_sg, src, cryp->len);

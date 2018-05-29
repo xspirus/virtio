@@ -252,9 +252,11 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         sgs[num_out + num_in++] = &session_op_sg;
         sg_init_one(&return_sg, &ret, sizeof(ret));
         sgs[num_out + num_in++] = &return_sg;
+        debug("num out %d num in %d", num_out, num_in);
         while (num_out + num_in != 8) {
             sgs[num_out + num_in++] = &return_sg;
         }
+        debug("num out %d num in %d", num_out, num_in);
 		break;
 
 	case CIOCFSESSION:

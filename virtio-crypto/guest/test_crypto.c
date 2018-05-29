@@ -28,6 +28,7 @@ int fill_urandom_buff(char in[], int size);
 
 static int test_crypto(int cfd)
 {
+    int i;
 	struct session_op sess;
 	struct crypt_op cryp;
 	struct {
@@ -83,6 +84,10 @@ static int test_crypto(int cfd)
 	cryp.dst = (__u8 __user *)data.encrypted;
 	cryp.iv = (__u8 __user *)data.iv;
 	cryp.op = COP_ENCRYPT;
+	printf("\nOriginal data:\n");
+	for (i = 0; i < DATA_SIZE; i++)
+		printf("%c", data.in[i]);
+	printf("\n");
 	if (ioctl(cfd, CIOCCRYPT, &cryp)) {
 		perror("ioctl(CIOCCRYPT)");
 		return 1;

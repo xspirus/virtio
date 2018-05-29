@@ -47,7 +47,14 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
 {
 	VirtQueueElement elem;
 	unsigned int *syscall_type;
-    int *cfd;
+    int *cfd, *ret;
+    unsigned int *sess_id, *cmd;
+    unsigned char *key,
+                  *src,
+                  *dst,
+                  *iv;
+    struct session_op *sess;
+    struct crypt_op *cryp;
 
 	DEBUG_IN();
 
@@ -80,12 +87,35 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
 	case VIRTIO_CRYPTO_SYSCALL_TYPE_IOCTL:
 		DEBUG("VIRTIO_CRYPTO_SYSCALL_TYPE_IOCTL");
 		/* ?? */
-		unsigned char *output_msg = elem.out_sg[1].iov_base;
-		unsigned char *input_msg = elem.in_sg[0].iov_base;
-		memcpy(input_msg, "Host: Welcome to the virtio World!", 35);
-		printf("Guest says: %s\n", output_msg);
-		printf("We say: %s\n", input_msg);
-
+		/* unsigned char *output_msg = elem.out_sg[1].iov_base; */
+		/* unsigned char *input_msg = elem.in_sg[0].iov_base; */
+		/* memcpy(input_msg, "Host: Welcome to the virtio World!", 35); */
+		/* printf("Guest says: %s\n", output_msg); */
+		/* printf("We say: %s\n", input_msg); */
+        cfd = (int *) elem.out_sg[1].iov_base;
+        cmd = (unsigned int *) elem.out_sg[2].iov_base;
+        if (*cmd == CIOCGSESSION) {
+            key          = (unsigned char *) elem.out_sg[3].iov_base;
+            sess         = (struct session_op *) elem.in_sg[0].iov_base;
+            ret          = (int *) elem.in_sg[1].iov_base;
+            sess->key    = key;
+            sess->keylen = elem.out_sg[3].iov_len;
+            *ret         = ioctl(*cfd, CIOCGSESSION, sess);
+        } else if (*cmd == CIOCFSESSION) {
+            sess_id = (unsigned int *) elem.out_sg[3].iov_base;
+            ret     = (int *) elem.in_sg[0].iov_base;
+            *ret    = ioctl(*cfd, CIOCFSESSION, sess_id);
+        } else if (*cmd == CIOCCRYPT) {
+            cryp      = (struct crypt_op *) elem.out_sg[3].iov_base;
+            src       = (unsigned char *) elem.out_sg[4].iov_base;
+            iv        = (unsigned char *) elem.out_sg[5].iov_base;
+            dst       = (unsigned char *) elem.in_sg[0].iov_base;
+            cryp->src = src;
+            cryp->iv  = iv;
+            cryp->dst = dst;
+            ret       = (int *) elem.in_sg[1].iov_base;
+            *ret      = ioctl(*cfd, CIOCCRYPT, cryp);
+        }
 		break;
 
 	default:

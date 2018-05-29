@@ -146,7 +146,7 @@ struct crypt_auth_op {
 	                         * space for tag. For TLS this should be at least 
 	                         * len + tag_size + block_size for padding */
 
-	__u8    __user *tag;    /* where the tag will be copied to. TLS mode
+	__u8    __user *tag; /* where the tag will be copied to. TLS mode
                                  * doesn't use that as tag is copied to dst.
                                  * SRTP mode copies tag there. */
 	__u32	tag_len;	/* the length of the tag. Use zero for digest size or max tag. */
@@ -206,16 +206,16 @@ struct crypt_auth_op {
 
 /* struct crypt_op flags */
 
-#define COP_FLAG_NONE		(0 << 0) /* totally no flag */
-#define COP_FLAG_UPDATE		(1 << 0) /* multi-update hash mode */
-#define COP_FLAG_FINAL		(1 << 1) /* multi-update final hash mode */
-#define COP_FLAG_WRITE_IV	(1 << 2) /* update the IV during operation */
-#define COP_FLAG_NO_ZC		(1 << 3) /* do not zero-copy */
-#define COP_FLAG_AEAD_TLS_TYPE  (1 << 4) /* authenticate and encrypt using the 
+#define COP_FLAG_NONE           (0 << 0) /* totally no flag                */
+#define COP_FLAG_UPDATE         (1 << 0) /* multi-update hash mode         */
+#define COP_FLAG_FINAL          (1 << 1) /* multi-update final hash mode   */
+#define COP_FLAG_WRITE_IV       (1 << 2) /* update the IV during operation */
+#define COP_FLAG_NO_ZC          (1 << 3) /* do not zero-copy               */
+#define COP_FLAG_AEAD_TLS_TYPE  (1 << 4) /* authenticate and encrypt using the
                                           * TLS protocol rules */
-#define COP_FLAG_AEAD_SRTP_TYPE  (1 << 5) /* authenticate and encrypt using the 
+#define COP_FLAG_AEAD_SRTP_TYPE (1 << 5) /* authenticate and encrypt using the
                                            * SRTP protocol rules */
-#define COP_FLAG_RESET		(1 << 6) /* multi-update reset the state.
+#define COP_FLAG_RESET          (1 << 6) /* multi-update reset the state.
                                           * should be used in combination
                                           * with COP_FLAG_UPDATE */
 

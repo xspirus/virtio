@@ -66,8 +66,6 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
 	struct crypto_open_file *crof;
 	struct crypto_device *crdev;
 	unsigned int *syscall_type;
-#define MSG_LEN 100
-    unsigned char *msg;
 	int *host_fd;
     struct scatterlist syscall_type_sg,
                        host_fd_sg,
@@ -79,7 +77,6 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
 	*syscall_type = VIRTIO_CRYPTO_SYSCALL_OPEN;
 	host_fd = kzalloc(sizeof(*host_fd), GFP_KERNEL);
 	*host_fd = -1;
-	msg = kzalloc(MSG_LEN, GFP_KERNEL);
 
 	ret = -ENODEV;
 	if ((ret = nonseekable_open(inode, filp)) < 0)
@@ -191,20 +188,33 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 	struct crypto_open_file *crof = filp->private_data;
 	struct crypto_device *crdev = crof->crdev;
 	struct virtqueue *vq = crdev->vq;
-	struct scatterlist syscall_type_sg, output_msg_sg, input_msg_sg,
-	                   *sgs[3];
+    struct scatterlist syscall_type_sg,
+                       host_fd_sg,
+                       ioctl_cmd_sg,
+                       session_key_sg,
+                       session_op_sg,
+                       session_id_sg,
+                       crypt_op_sg,
+                       src_sg,
+                       iv_sg,
+                       dst_sg,
+                       return_sg,
+                       *sgs[8];
 	unsigned int num_out, num_in, len;
-#define MSG_LEN 100
-	unsigned char *output_msg, *input_msg;
+    unsigned int *sess_id;
+	unsigned char *key,
+                  *src,
+                  *iv,
+                  *dst;
 	unsigned int *syscall_type;
+    struct session_op *sess;
+    struct crypt_op *cryp;
 
 	debug("Entering");
 
 	/**
 	 * Allocate all data that will be sent to the host.
 	 **/
-	output_msg = kzalloc(MSG_LEN, GFP_KERNEL);
-	input_msg = kzalloc(MSG_LEN, GFP_KERNEL);
 	syscall_type = kzalloc(sizeof(*syscall_type), GFP_KERNEL);
 	*syscall_type = VIRTIO_CRYPTO_SYSCALL_IOCTL;
 
@@ -217,6 +227,10 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 	sg_init_one(&syscall_type_sg, syscall_type, sizeof(*syscall_type));
 	sgs[num_out++] = &syscall_type_sg;
 	/* ?? */
+    sg_init_one(&host_fd_sg, &crof->host_fd, sizeof(crof->host_fd));
+    sgs[num_out++] = &host_fd_sg;
+    sg_init_one(&ioctl_cmd_sg, &cmd, sizeof(cmd));
+    sgs[num_out++] = &ioctl_cmd_sg;
 
 	/**
 	 *  Add all the cmd specific sg lists.
@@ -224,35 +238,59 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 	switch (cmd) {
 	case CIOCGSESSION:
 		debug("CIOCGSESSION");
-		memcpy(output_msg, "Hello HOST from ioctl CIOCGSESSION.", 36);
-		input_msg[0] = '\0';
-		sg_init_one(&output_msg_sg, output_msg, MSG_LEN);
-		sgs[num_out++] = &output_msg_sg;
-		sg_init_one(&input_msg_sg, input_msg, MSG_LEN);
-		sgs[num_out + num_in++] = &input_msg_sg;
-
+		/* memcpy(output_msg, "Hello HOST from ioctl CIOCGSESSION.", 36); */
+		/* input_msg[0] = '\0'; */
+		/* sg_init_one(&output_msg_sg, output_msg, MSG_LEN); */
+		/* sgs[num_out++] = &output_msg_sg; */
+		/* sg_init_one(&input_msg_sg, input_msg, MSG_LEN); */
+		/* sgs[num_out + num_in++] = &input_msg_sg; */
+        sess = (struct session_op *) arg;
+        key  = (unsigned char *) sess->key;
+        sg_init_one(&session_key_sg, key, sess->keylen);
+        sgs[num_out++] = &session_key_sg;
+        sg_init_one(&session_op_sg, sess, sizeof(*sess));
+        sgs[num_out + num_in++] = &session_op_sg;
+        sg_init_one(&return_sg, &ret, sizeof(ret));
+        sgs[num_out + num_in++] = &return_sg;
 		break;
 
 	case CIOCFSESSION:
 		debug("CIOCFSESSION");
-		memcpy(output_msg, "Hello HOST from ioctl CIOCFSESSION.", 36);
-		input_msg[0] = '\0';
-		sg_init_one(&output_msg_sg, output_msg, MSG_LEN);
-		sgs[num_out++] = &output_msg_sg;
-		sg_init_one(&input_msg_sg, input_msg, MSG_LEN);
-		sgs[num_out + num_in++] = &input_msg_sg;
-
+		/* memcpy(output_msg, "Hello HOST from ioctl CIOCFSESSION.", 36); */
+		/* input_msg[0] = '\0'; */
+		/* sg_init_one(&output_msg_sg, output_msg, MSG_LEN); */
+		/* sgs[num_out++] = &output_msg_sg; */
+		/* sg_init_one(&input_msg_sg, input_msg, MSG_LEN); */
+		/* sgs[num_out + num_in++] = &input_msg_sg; */
+        sess_id = (unsigned int *) arg;
+        sg_init_one(&session_id_sg, sess_id, sizeof(*sess_id));
+        sgs[num_out++] = &session_id_sg;
+        sg_init_one(&return_sg, &ret, sizeof(ret));
+        sgs[num_out + num_in++] = &return_sg;
 		break;
 
 	case CIOCCRYPT:
 		debug("CIOCCRYPT");
-		memcpy(output_msg, "Hello HOST from ioctl CIOCCRYPT.", 33);
-		input_msg[0] = '\0';
-		sg_init_one(&output_msg_sg, output_msg, MSG_LEN);
-		sgs[num_out++] = &output_msg_sg;
-		sg_init_one(&input_msg_sg, input_msg, MSG_LEN);
-		sgs[num_out + num_in++] = &input_msg_sg;
-
+		/* memcpy(output_msg, "Hello HOST from ioctl CIOCCRYPT.", 33); */
+		/* input_msg[0] = '\0'; */
+		/* sg_init_one(&output_msg_sg, output_msg, MSG_LEN); */
+		/* sgs[num_out++] = &output_msg_sg; */
+		/* sg_init_one(&input_msg_sg, input_msg, MSG_LEN); */
+		/* sgs[num_out + num_in++] = &input_msg_sg; */
+        cryp = (struct crypt_op *) arg;
+        src  = (unsigned char *) cryp->src;
+        dst  = (unsigned char *) cryp->dst;
+        iv   = (unsigned char *) cryp->iv;
+        sg_init_one(&crypt_op_sg, cryp, sizeof(*cryp));
+        sgs[num_out++] = &crypt_op_sg;
+        sg_init_one(&src_sg, src, cryp->len);
+        sgs[num_out++] = &src_sg;
+        sg_init_one(&iv_sg, iv, AES_BLOCK_LEN);
+        sgs[num_out++] = &iv_sg;
+        sg_init_one(&dst_sg, dst, cryp->len);
+        sgs[num_out + num_in++] = dst_sg;
+        sg_init_one(&return_sg, &ret, sizeof(ret));
+        sgs[num_out + num_in++] = &return_sg;
 		break;
 
 	default:
@@ -273,11 +311,9 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 	while (virtqueue_get_buf(vq, &len) == NULL)
 		/* do nothing */;
 
-	debug("We said: '%s'", output_msg);
-	debug("Host answered: '%s'", input_msg);
+	debug("We said: '%s'", src);
+	debug("Host answered: '%s'", dst);
 
-	kfree(output_msg);
-	kfree(input_msg);
 	kfree(syscall_type);
 
 	debug("Leaving");

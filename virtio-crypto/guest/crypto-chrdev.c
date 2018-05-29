@@ -252,7 +252,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         key  = (unsigned char *) sess.key;
         if (key == NULL)
             debug("key is null");
-        debug("key pointer is %ld", key);
+        debug("key pointer is %p", (void *) key);
         debug("size of key is %d", sess.keylen);
         sg_init_one(&session_key_sg, key, sess.keylen);
         sgs[num_out++] = &session_key_sg;

@@ -86,7 +86,7 @@ static int test_crypto(int cfd)
 	cryp.op = COP_ENCRYPT;
 	printf("\nOriginal data:\n");
 	for (i = 0; i < DATA_SIZE; i++)
-		printf("%c", data.in[i]);
+		printf("%x", data.in[i]);
 	printf("\n");
 	if (ioctl(cfd, CIOCCRYPT, &cryp)) {
 		perror("ioctl(CIOCCRYPT)");

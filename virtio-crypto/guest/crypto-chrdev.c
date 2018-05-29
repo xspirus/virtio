@@ -329,6 +329,10 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 	/* ?? */
 	/* ?? Lock ?? */
     debug("num out %d num in %d", num_out, num_in);
+    for (err = 0; err < 8; err++) {
+        if (sgs[err] == NULL)
+            debug("sgs[%d] is null", err);
+    }
 	/* err = virtqueue_add_sgs(vq, sgs, num_out, num_in, */
 							/* &syscall_type_sg, GFP_ATOMIC); */
 	/* virtqueue_kick(vq); */

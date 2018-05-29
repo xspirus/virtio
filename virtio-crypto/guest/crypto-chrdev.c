@@ -249,8 +249,6 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
             debug("copy from user fail");
             return -EFAULT;
         }
-        if (sess == NULL)
-            debug("sess is null");
         key  = (unsigned char *) sess.key;
         if (key == NULL)
             debug("key is null");
@@ -299,8 +297,6 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		/* sg_init_one(&input_msg_sg, input_msg, MSG_LEN); */
 		/* sgs[num_out + num_in++] = &input_msg_sg; */
         /* cryp = (struct crypt_op *) arg; */
-        if (cryp == NULL)
-            debug("cryp is null");
         if (copy_from_user(&cryp, (struct crypt_op *) arg, sizeof(struct crypt_op))) {
             debug("copy from user fail");
             return -EFAULT;

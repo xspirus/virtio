@@ -58,6 +58,8 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
 
 	DEBUG_IN();
 
+    DEBUG("virtqueue_pop");
+
 	if (!virtqueue_pop(vq, &elem)) {
 		DEBUG("No item to pop from VQ :(");
 		return;

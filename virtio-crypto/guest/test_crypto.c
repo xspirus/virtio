@@ -24,7 +24,7 @@
 #define BLOCK_SIZE      16
 #define KEY_SIZE        24
 
-int fill_urandom_buff(char in[DATA_SIZE]);
+int fill_urandom_buff(char in[], int size);
 
 static int test_crypto(int cfd)
 {
@@ -41,7 +41,17 @@ static int test_crypto(int cfd)
 	memset(&sess, 0, sizeof(sess));
 	memset(&cryp, 0, sizeof(cryp));
 
-	if (fill_urandom_buff(data.in) < 0) {		
+	if (fill_urandom_buff(data.in, DATA_SIZE) < 0) {		
+		printf("error @filling urandom data\n");
+		return 1;
+	}
+
+	if (fill_urandom_buff(data.iv, BLOCK_SIZE) < 0) {		
+		printf("error @filling urandom data\n");
+		return 1;
+	}
+    
+	if (fill_urandom_buff(data.key, KEY_SIZE) < 0) {		
 		printf("error @filling urandom data\n");
 		return 1;
 	}
@@ -115,14 +125,14 @@ static int test_crypto(int cfd)
 	return 0;
 }
 
-int fill_urandom_buff(char in[DATA_SIZE]){
+int fill_urandom_buff(char in[], int size){
 	int crypto_fd = open("/dev/urandom", O_RDONLY);
 	int ret = -1;
 	
 	if (crypto_fd < 0)
 		return crypto_fd;
 	
-	ret = read(crypto_fd, (void *)in, DATA_SIZE);
+	ret = read(crypto_fd, (void *)in, size);
 	
 	close(crypto_fd);
 	

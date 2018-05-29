@@ -199,7 +199,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
                        iv_sg,
                        dst_sg,
                        return_sg,
-                       *sgs[8];
+                       *sgs[3];
 	unsigned int num_out, num_in, len;
     unsigned int *sess_id;
 	unsigned char *key,
@@ -244,20 +244,22 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		/* sgs[num_out++] = &output_msg_sg; */
 		/* sg_init_one(&input_msg_sg, input_msg, MSG_LEN); */
 		/* sgs[num_out + num_in++] = &input_msg_sg; */
-        /* sess = (struct session_op *) arg; */
-        copy_from_user(sess, (struct session_op *) arg, sizeof(struct session_op));
+        sess = (struct session_op *) arg;
+        if (sess == NULL)
+            debug("sess is null");
+        /* copy_from_user(sess, (struct session_op *) arg, sizeof(struct session_op)); */
         key  = (unsigned char *) sess->key;
         sg_init_one(&session_key_sg, key, sess->keylen);
-        sgs[num_out++] = &session_key_sg;
+        /* sgs[num_out++] = &session_key_sg; */
         sg_init_one(&session_op_sg, sess, sizeof(*sess));
-        sgs[num_out + num_in++] = &session_op_sg;
+        /* sgs[num_out + num_in++] = &session_op_sg; */
         sg_init_one(&return_sg, &ret, sizeof(ret));
-        sgs[num_out + num_in++] = &return_sg;
+        /* sgs[num_out + num_in++] = &return_sg; */
         debug("num out %d num in %d", num_out, num_in);
-        while (num_out + num_in != 8) {
-            sgs[num_out + num_in++] = &return_sg;
-        }
-        debug("num out %d num in %d", num_out, num_in);
+        /* while (num_out + num_in != 8) { */
+            /* sgs[num_out + num_in++] = &return_sg; */
+        /* } */
+        /* debug("num out %d num in %d", num_out, num_in); */
 		break;
 
 	case CIOCFSESSION:
@@ -268,15 +270,16 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		/* sgs[num_out++] = &output_msg_sg; */
 		/* sg_init_one(&input_msg_sg, input_msg, MSG_LEN); */
 		/* sgs[num_out + num_in++] = &input_msg_sg; */
-        /* sess_id = (unsigned int *) arg; */
-        copy_from_user(sess_id, (unsigned int *) arg, sizeof(unsigned int));
+        sess_id = (unsigned int *) arg;
+        debug("sess id %d", *sess_id);
+        /* copy_from_user(sess_id, (unsigned int *) arg, sizeof(unsigned int)); */
         sg_init_one(&session_id_sg, sess_id, sizeof(*sess_id));
-        sgs[num_out++] = &session_id_sg;
+        /* sgs[num_out++] = &session_id_sg; */
         sg_init_one(&return_sg, &ret, sizeof(ret));
-        sgs[num_out + num_in++] = &return_sg;
-        while (num_out + num_in != 8) {
-            sgs[num_out + num_in++] = &return_sg;
-        }
+        /* sgs[num_out + num_in++] = &return_sg; */
+        /* while (num_out + num_in != 8) { */
+            /* sgs[num_out + num_in++] = &return_sg; */
+        /* } */
 		break;
 
 	case CIOCCRYPT:
@@ -287,21 +290,23 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		/* sgs[num_out++] = &output_msg_sg; */
 		/* sg_init_one(&input_msg_sg, input_msg, MSG_LEN); */
 		/* sgs[num_out + num_in++] = &input_msg_sg; */
-        /* cryp = (struct crypt_op *) arg; */
-        copy_from_user(cryp, (struct crypt_op *) arg, sizeof(struct crypt_op));
+        cryp = (struct crypt_op *) arg;
+        if (cryp == NULL)
+            debug("cryp is null");
+        /* copy_from_user(cryp, (struct crypt_op *) arg, sizeof(struct crypt_op)); */
         src  = (unsigned char *) cryp->src;
         dst  = (unsigned char *) cryp->dst;
         iv   = (unsigned char *) cryp->iv;
         sg_init_one(&crypt_op_sg, cryp, sizeof(*cryp));
-        sgs[num_out++] = &crypt_op_sg;
+        /* sgs[num_out++] = &crypt_op_sg; */
         sg_init_one(&src_sg, src, cryp->len);
-        sgs[num_out++] = &src_sg;
+        /* sgs[num_out++] = &src_sg; */
         sg_init_one(&iv_sg, iv, AES_BLOCK_LEN);
-        sgs[num_out++] = &iv_sg;
+        /* sgs[num_out++] = &iv_sg; */
         sg_init_one(&dst_sg, dst, cryp->len);
-        sgs[num_out + num_in++] = &dst_sg;
+        /* sgs[num_out + num_in++] = &dst_sg; */
         sg_init_one(&return_sg, &ret, sizeof(ret));
-        sgs[num_out + num_in++] = &return_sg;
+        /* sgs[num_out + num_in++] = &return_sg; */
 		break;
 
 	default:

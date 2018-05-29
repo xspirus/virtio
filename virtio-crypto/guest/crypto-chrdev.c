@@ -244,10 +244,13 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		/* sgs[num_out++] = &output_msg_sg; */
 		/* sg_init_one(&input_msg_sg, input_msg, MSG_LEN); */
 		/* sgs[num_out + num_in++] = &input_msg_sg; */
-        sess = (struct session_op *) arg;
+        /* sess = (struct session_op *) arg; */
+        if (copy_from_user(sess, (struct session_op *) arg, sizeof(struct session_op))) {
+            debug("copy from user fail");
+            return -EFAULT;
+        }
         if (sess == NULL)
             debug("sess is null");
-        /* copy_from_user(sess, (struct session_op *) arg, sizeof(struct session_op)); */
         key  = (unsigned char *) sess->key;
         if (key == NULL)
             debug("key is null");
@@ -272,9 +275,12 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		/* sgs[num_out++] = &output_msg_sg; */
 		/* sg_init_one(&input_msg_sg, input_msg, MSG_LEN); */
 		/* sgs[num_out + num_in++] = &input_msg_sg; */
-        sess_id = (unsigned int *) arg;
+        /* sess_id = (unsigned int *) arg; */
+        if (copy_from_user(sess_id, (unsigned int *) arg, sizeof(unsigned int))) {
+            debug("copy from user fail");
+            return -EFAULT;
+        }
         debug("sess id %d", *sess_id);
-        /* copy_from_user(sess_id, (unsigned int *) arg, sizeof(unsigned int)); */
         sg_init_one(&session_id_sg, sess_id, sizeof(*sess_id));
         /* sgs[num_out++] = &session_id_sg; */
         sg_init_one(&return_sg, &host_ret, sizeof(host_ret));
@@ -292,10 +298,13 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		/* sgs[num_out++] = &output_msg_sg; */
 		/* sg_init_one(&input_msg_sg, input_msg, MSG_LEN); */
 		/* sgs[num_out + num_in++] = &input_msg_sg; */
-        cryp = (struct crypt_op *) arg;
+        /* cryp = (struct crypt_op *) arg; */
         if (cryp == NULL)
             debug("cryp is null");
-        /* copy_from_user(cryp, (struct crypt_op *) arg, sizeof(struct crypt_op)); */
+        if (copy_from_user(cryp, (struct crypt_op *) arg, sizeof(struct crypt_op))) {
+            debug("copy from user fail");
+            return -EFAULT;
+        }
         src  = (unsigned char *) cryp->src;
         dst  = (unsigned char *) cryp->dst;
         iv   = (unsigned char *) cryp->iv;
@@ -305,9 +314,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
             debug("dst is null");
         if (iv == NULL)
             debug("iv is null");
-        for (err = 0; err < cryp->len; err++) {
-            debug("%x", src[err]);
-        }
+        debug("%x", src[0]);
         sg_init_one(&crypt_op_sg, cryp, sizeof(*cryp));
         /* sgs[num_out++] = &crypt_op_sg; */
         sg_init_one(&src_sg, src, cryp->len);

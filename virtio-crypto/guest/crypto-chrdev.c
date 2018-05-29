@@ -244,7 +244,8 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		/* sgs[num_out++] = &output_msg_sg; */
 		/* sg_init_one(&input_msg_sg, input_msg, MSG_LEN); */
 		/* sgs[num_out + num_in++] = &input_msg_sg; */
-        sess = (struct session_op *) arg;
+        /* sess = (struct session_op *) arg; */
+        copy_from_user(sess, (struct session_op *) arg, sizeof(struct session_op));
         key  = (unsigned char *) sess->key;
         sg_init_one(&session_key_sg, key, sess->keylen);
         sgs[num_out++] = &session_key_sg;
@@ -267,7 +268,8 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		/* sgs[num_out++] = &output_msg_sg; */
 		/* sg_init_one(&input_msg_sg, input_msg, MSG_LEN); */
 		/* sgs[num_out + num_in++] = &input_msg_sg; */
-        sess_id = (unsigned int *) arg;
+        /* sess_id = (unsigned int *) arg; */
+        copy_from_user(sess_id, (unsigned int *) arg, sizeof(unsigned int));
         sg_init_one(&session_id_sg, sess_id, sizeof(*sess_id));
         sgs[num_out++] = &session_id_sg;
         sg_init_one(&return_sg, &ret, sizeof(ret));
@@ -285,7 +287,8 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		/* sgs[num_out++] = &output_msg_sg; */
 		/* sg_init_one(&input_msg_sg, input_msg, MSG_LEN); */
 		/* sgs[num_out + num_in++] = &input_msg_sg; */
-        cryp = (struct crypt_op *) arg;
+        /* cryp = (struct crypt_op *) arg; */
+        copy_from_user(cryp, (struct crypt_op *) arg, sizeof(struct crypt_op));
         src  = (unsigned char *) cryp->src;
         dst  = (unsigned char *) cryp->dst;
         iv   = (unsigned char *) cryp->iv;

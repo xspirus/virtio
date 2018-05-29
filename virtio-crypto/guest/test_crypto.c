@@ -67,6 +67,8 @@ static int test_crypto(int cfd)
 	sess.cipher = CRYPTO_AES_CBC;
 	sess.keylen = KEY_SIZE;
 	sess.key = (__u8  __user *)data.key;
+
+    printf("key pointer is %ld", sess.key);
 	
 	if (ioctl(cfd, CIOCGSESSION, &sess)) {
 		perror("ioctl(CIOCGSESSION)");

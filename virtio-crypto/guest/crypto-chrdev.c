@@ -159,7 +159,7 @@ static int crypto_chrdev_release(struct inode *inode, struct file *filp)
 	 **/
 	/* ?? */
 	sg_init_one(&syscall_type_sg, syscall_type, sizeof(*syscall_type));
-	sg_init_one(&host_fd_sg, &crof->host_fd, MSG_LEN);
+	sg_init_one(&host_fd_sg, &crof->host_fd, sizeof(crof->host_fd));
 
     sgs[0] = &syscall_type_sg;
     sgs[1] = &host_fd_sg;
@@ -288,7 +288,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         sg_init_one(&iv_sg, iv, AES_BLOCK_LEN);
         sgs[num_out++] = &iv_sg;
         sg_init_one(&dst_sg, dst, cryp->len);
-        sgs[num_out + num_in++] = dst_sg;
+        sgs[num_out + num_in++] = &dst_sg;
         sg_init_one(&return_sg, &ret, sizeof(ret));
         sgs[num_out + num_in++] = &return_sg;
 		break;

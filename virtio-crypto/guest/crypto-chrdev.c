@@ -201,14 +201,14 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
                        return_sg,
                        *sgs[3];
 	unsigned int num_out, num_in, len;
-    unsigned int *sess_id;
+    unsigned int sess_id;
 	unsigned char *key,
                   *src,
                   *iv,
                   *dst;
 	unsigned int *syscall_type;
-    struct session_op *sess;
-    struct crypt_op *cryp;
+    struct session_op sess;
+    struct crypt_op cryp;
 
 	debug("Entering");
 
@@ -245,18 +245,18 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		/* sg_init_one(&input_msg_sg, input_msg, MSG_LEN); */
 		/* sgs[num_out + num_in++] = &input_msg_sg; */
         /* sess = (struct session_op *) arg; */
-        if (copy_from_user(sess, (struct session_op *) arg, sizeof(struct session_op))) {
+        if (copy_from_user(&sess, (struct session_op *) arg, sizeof(struct session_op))) {
             debug("copy from user fail");
             return -EFAULT;
         }
         if (sess == NULL)
             debug("sess is null");
-        key  = (unsigned char *) sess->key;
+        key  = (unsigned char *) sess.key;
         if (key == NULL)
             debug("key is null");
-        sg_init_one(&session_key_sg, key, sess->keylen);
+        sg_init_one(&session_key_sg, key, sess.keylen);
         /* sgs[num_out++] = &session_key_sg; */
-        sg_init_one(&session_op_sg, sess, sizeof(*sess));
+        sg_init_one(&session_op_sg, &sess, sizeof(sess));
         /* sgs[num_out + num_in++] = &session_op_sg; */
         sg_init_one(&return_sg, &host_ret, sizeof(host_ret));
         /* sgs[num_out + num_in++] = &return_sg; */
@@ -276,12 +276,12 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		/* sg_init_one(&input_msg_sg, input_msg, MSG_LEN); */
 		/* sgs[num_out + num_in++] = &input_msg_sg; */
         /* sess_id = (unsigned int *) arg; */
-        if (copy_from_user(sess_id, (unsigned int *) arg, sizeof(unsigned int))) {
+        if (copy_from_user(&sess_id, (unsigned int *) arg, sizeof(unsigned int))) {
             debug("copy from user fail");
             return -EFAULT;
         }
-        debug("sess id %d", *sess_id);
-        sg_init_one(&session_id_sg, sess_id, sizeof(*sess_id));
+        debug("sess id %d", sess_id);
+        sg_init_one(&session_id_sg, &sess_id, sizeof(sess_id));
         /* sgs[num_out++] = &session_id_sg; */
         sg_init_one(&return_sg, &host_ret, sizeof(host_ret));
         /* sgs[num_out + num_in++] = &return_sg; */
@@ -301,13 +301,13 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         /* cryp = (struct crypt_op *) arg; */
         if (cryp == NULL)
             debug("cryp is null");
-        if (copy_from_user(cryp, (struct crypt_op *) arg, sizeof(struct crypt_op))) {
+        if (copy_from_user(&cryp, (struct crypt_op *) arg, sizeof(struct crypt_op))) {
             debug("copy from user fail");
             return -EFAULT;
         }
-        src  = (unsigned char *) cryp->src;
-        dst  = (unsigned char *) cryp->dst;
-        iv   = (unsigned char *) cryp->iv;
+        src  = (unsigned char *) cryp.src;
+        dst  = (unsigned char *) cryp.dst;
+        iv   = (unsigned char *) cryp.iv;
         if (src == NULL)
             debug("source is null");
         if (dst == NULL)
@@ -315,13 +315,13 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         if (iv == NULL)
             debug("iv is null");
         debug("%x", src[0]);
-        sg_init_one(&crypt_op_sg, cryp, sizeof(*cryp));
+        sg_init_one(&crypt_op_sg, &cryp, sizeof(cryp));
         /* sgs[num_out++] = &crypt_op_sg; */
-        sg_init_one(&src_sg, src, cryp->len);
+        sg_init_one(&src_sg, src, cryp.len);
         /* sgs[num_out++] = &src_sg; */
         sg_init_one(&iv_sg, iv, AES_BLOCK_LEN);
         /* sgs[num_out++] = &iv_sg; */
-        sg_init_one(&dst_sg, dst, cryp->len);
+        sg_init_one(&dst_sg, dst, cryp.len);
         /* sgs[num_out + num_in++] = &dst_sg; */
         sg_init_one(&return_sg, &host_ret, sizeof(host_ret));
         /* sgs[num_out + num_in++] = &return_sg; */

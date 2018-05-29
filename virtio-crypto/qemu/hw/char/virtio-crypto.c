@@ -77,6 +77,7 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
             *cfd = -1;
         }
         DEBUG("opened file descriptor");
+        printf("file descriptor opened is %d", *cfd);
 		break;
 
 	case VIRTIO_CRYPTO_SYSCALL_TYPE_CLOSE:

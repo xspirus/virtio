@@ -234,6 +234,14 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
     host_ret = kzalloc(sizeof(*host_ret), GFP_KERNEL);
     *host_ret = 0;
 
+    sess_id = kzalloc(sizeof(*sess_id), GFP_KERNEL);
+    sess = kzalloc(sizeof(*sess), GFP_KERNEL);
+    cryp = kzalloc(sizeof(*cryp), GFP_KERNEL);
+    key = kzalloc(sizeof(*key), GFP_KERNEL);
+    src = kzalloc(sizeof(*src), GFP_KERNEL);
+    iv = kzalloc(sizeof(*iv), GFP_KERNEL);
+    dst = kzalloc(sizeof(*dst), GFP_KERNEL);
+
 	num_out = 0;
 	num_in = 0;
 

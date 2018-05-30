@@ -313,6 +313,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         src  = (unsigned char *) cryp.src;
         dst  = (unsigned char *) cryp.dst;
         iv   = (unsigned char *) cryp.iv;
+        debug("data len is %d", cryp.len);
         sg_init_one(&crypt_op_sg, &cryp, sizeof(cryp));
         sgs[num_out++] = &crypt_op_sg;
         sg_init_one(&src_sg, src, cryp.len);

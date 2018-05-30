@@ -68,7 +68,7 @@ static int test_crypto(int cfd)
 	sess.keylen = KEY_SIZE;
 	sess.key = (__u8  __user *)data.key;
 
-    printf("key pointer is %p", (void *) sess.key);
+    printf("key pointer is %p\n", (void *) sess.key);
 	
 	if (ioctl(cfd, CIOCGSESSION, &sess)) {
 		perror("ioctl(CIOCGSESSION)");
@@ -86,10 +86,10 @@ static int test_crypto(int cfd)
 	cryp.dst = (__u8 __user *)data.encrypted;
 	cryp.iv = (__u8 __user *)data.iv;
 	cryp.op = COP_ENCRYPT;
-	printf("\nOriginal data:\n");
-	for (i = 0; i < DATA_SIZE; i++)
-		printf("%x", data.in[i]);
-	printf("\n");
+	/* printf("\nOriginal data:\n"); */
+	/* for (i = 0; i < DATA_SIZE; i++) */
+		/* printf("%x", data.in[i]); */
+	/* printf("\n"); */
 	if (ioctl(cfd, CIOCCRYPT, &cryp)) {
 		perror("ioctl(CIOCCRYPT)");
 		return 1;

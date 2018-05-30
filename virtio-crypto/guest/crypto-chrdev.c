@@ -256,6 +256,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
             debug("copy from user fail");
             return -EFAULT;
         }
+        debug("address of key is %p", (void *) sess.key);
         key  = (unsigned char *) sess.key;
         if (key == NULL)
             debug("key is null");
@@ -267,11 +268,6 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         sgs[num_out + num_in++] = &session_op_sg;
         sg_init_one(&return_sg, &host_ret, sizeof(host_ret));
         sgs[num_out + num_in++] = &return_sg;
-        debug("num out %d num in %d", num_out, num_in);
-        while (num_out + num_in != 8) {
-            sgs[num_out + num_in++] = NULL;
-        }
-        debug("num out %d num in %d", num_out, num_in);
 		break;
 
 	case CIOCFSESSION:
@@ -292,9 +288,6 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         sgs[num_out++] = &session_id_sg;
         sg_init_one(&return_sg, &host_ret, sizeof(host_ret));
         sgs[num_out + num_in++] = &return_sg;
-        while (num_out + num_in != 8) {
-            sgs[num_out + num_in++] = NULL;
-        }
 		break;
 
 	case CIOCCRYPT:
@@ -339,9 +332,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 	/* ?? */
 	/* ?? Lock ?? */
     debug("num out %d num in %d", num_out, num_in);
-    for (err = 0; err < 8; err++) {
-        if (sgs[err] == NULL)
-            debug("sgs[%d] is null", err);
+    for (err = 0; err < num_out + num_in; err++) {
         debug("sgs[%d] has address %p", err, (void *)sgs[err]);
     }
 	/* err = virtqueue_add_sgs(vq, sgs, num_out, num_in, */

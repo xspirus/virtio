@@ -399,6 +399,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
             debug("copy to user fail");
             return -EFAULT;
         }
+        debug("got session id %d", sess->ses);
         ret = (long) *host_ret;
         kfree(sess);
         kfree(key);
@@ -419,6 +420,16 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
             debug("copy to user fail");
             return -EFAULT;
         }
+        printk("\nSource:\n")
+        for (err = 0; err < arg_cryp->len; err++) {
+            printk("%x", src[err]);
+        }
+        printk("\n");
+        printk("\nDestination:\n")
+        for (err = 0; err < arg_cryp->len; err++) {
+            printk("%x", dst[err]);
+        }
+        printk("\n");
         ret = (long) *host_ret;
         kfree(cryp);
         kfree(src);

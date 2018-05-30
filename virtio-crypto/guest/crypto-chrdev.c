@@ -219,6 +219,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
                   *src,
                   *iv,
                   *dst;
+    unsigned char *test;
 	unsigned int *syscall_type;
     struct session_op *sess, *arg_sess;
     struct crypt_op *cryp, *arg_cryp;
@@ -270,14 +271,16 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
             debug("copy from user fail");
             return -EFAULT;
         }
+        test = kzalloc(sess->keylen, GFP_KERNEL);
+        test[0] = '\0';
         debug("key pointer is %p", (void *) key);
         debug("size of key is %d", sess->keylen);
-        sg_init_one(&session_key_sg, key, sess->keylen);
+        sg_init_one(&session_key_sg, test, sess->keylen);
         sgs[num_out++] = &session_key_sg;
-        sg_init_one(&session_op_sg, &sess, sizeof(sess));
-        sgs[num_out + num_in++] = &session_op_sg;
-        sg_init_one(&return_sg, &host_ret, sizeof(host_ret));
-        sgs[num_out + num_in++] = &return_sg;
+        /* sg_init_one(&session_op_sg, sess, sizeof(*sess)); */
+        /* sgs[num_out + num_in++] = &session_op_sg; */
+        /* sg_init_one(&return_sg, &host_ret, sizeof(host_ret)); */
+        /* sgs[num_out + num_in++] = &return_sg; */
 		break;
 
 	case CIOCFSESSION:

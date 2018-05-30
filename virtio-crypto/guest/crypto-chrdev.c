@@ -342,6 +342,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
     for (err = 0; err < num_out + num_in; err++) {
         debug("sgs[%d] = %p", err, (void *)sgs[err]);
         debug("sgs[%d]->page_link = %lu", err, sgs[err]->page_link);
+        debug("sgs[%d]->offset = %u", err, sgs[err]->offset);
         debug("sgs[%d]->length = %u", err, sgs[err]->length);
     }
 	/* err = virtqueue_add_sgs(vq, sgs, num_out, num_in, */

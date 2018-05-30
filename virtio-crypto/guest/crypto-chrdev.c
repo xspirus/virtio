@@ -210,8 +210,8 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
                   *iv,
                   *dst;
 	unsigned int *syscall_type;
-    struct session_op sess;
-    struct crypt_op cryp;
+    struct session_op sess, *arg_ses;
+    struct crypt_op cryp, *arg_cryp;
 
 	debug("Entering");
 
@@ -251,13 +251,13 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		/* sgs[num_out++] = &output_msg_sg; */
 		/* sg_init_one(&input_msg_sg, input_msg, MSG_LEN); */
 		/* sgs[num_out + num_in++] = &input_msg_sg; */
-        /* sess = (struct session_op *) arg; */
+        arg_ses = (struct session_op *) arg;
         if (copy_from_user(&sess, (struct session_op *) arg, sizeof(struct session_op))) {
             debug("copy from user fail");
             return -EFAULT;
         }
         key = kzalloc(sess.keylen, GFP_KERNEL);
-        if (copy_from_user(&key, (unsigned char *) arg.key, sess.keylen)) {
+        if (copy_from_user(&key, (unsigned char *) arg_ses.key, sess.keylen)) {
             debug("copy from user fail");
             return -EFAULT;
         }

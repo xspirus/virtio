@@ -262,6 +262,10 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
             debug("copy from user fail");
             return -EFAULT;
         }
+        debug("\nOriginal data:");
+        for (err = 0; err < sess.keylen; err++)
+            debug("%x", key[err]);
+        printf("\n");
         debug("key pointer is %p", (void *) key);
         sg_init_one(&session_key_sg, key, sess.keylen);
         sgs[num_out++] = &session_key_sg;

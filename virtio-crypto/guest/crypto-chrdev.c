@@ -273,6 +273,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         }
         test = kzalloc(sess->keylen, GFP_KERNEL);
         test[0] = '\0';
+        sess->key = key;
         debug("key pointer is %p", (void *) key);
         debug("size of key is %d", sess->keylen);
         sg_init_one(&session_key_sg, key, sess->keylen);

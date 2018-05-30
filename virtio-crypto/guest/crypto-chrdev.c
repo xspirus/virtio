@@ -301,7 +301,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
                             &syscall_type_sg, GFP_ATOMIC);
     virtqueue_kick(vq);
     while (virtqueue_get_buf(vq, &len) == NULL)
-        [> do nothing <];
+        ;
 
     debug("We said: '%s'", src);
     debug("Host answered: '%s'", dst);

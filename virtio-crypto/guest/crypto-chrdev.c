@@ -257,7 +257,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
             return -EFAULT;
         }
         key = kzalloc(sess.keylen, GFP_KERNEL);
-        if (copy_from_user(&key, (unsigned char *) arg_ses.key, sess.keylen)) {
+        if (copy_from_user(&key, (unsigned char *) arg_ses->key, sess.keylen)) {
             debug("copy from user fail");
             return -EFAULT;
         }

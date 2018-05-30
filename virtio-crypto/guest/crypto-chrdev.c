@@ -280,8 +280,8 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         sgs[num_out++] = &session_key_sg;
         sg_init_one(&session_op_sg, sess, sizeof(*sess));
         sgs[num_out + num_in++] = &session_op_sg;
-        sg_init_one(&return_sg, &host_ret, sizeof(host_ret));
-        sgs[num_out + num_in++] = &return_sg;
+        /* sg_init_one(&return_sg, &host_ret, sizeof(host_ret)); */
+        /* sgs[num_out + num_in++] = &return_sg; */
 		break;
 
 	case CIOCFSESSION:
@@ -352,8 +352,8 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         debug("sgs[%d]->offset = %u", err, sgs[err]->offset);
         debug("sgs[%d]->length = %u", err, sgs[err]->length);
     }
-    num_out = 4;
-    num_in = 0;
+    /* num_out = 4; */
+    /* num_in = 0; */
     err = virtqueue_add_sgs(vq, sgs, num_out, num_in,
                             &syscall_type_sg, GFP_ATOMIC);
     virtqueue_kick(vq);

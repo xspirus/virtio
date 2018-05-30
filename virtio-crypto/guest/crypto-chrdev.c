@@ -339,11 +339,11 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
     for (err = 0; err < num_out + num_in; err++) {
         debug("sgs[%d] has address %p", err, (void *)sgs[err]);
     }
-    err = virtqueue_add_sgs(vq, sgs, num_out, num_in,
-                            &syscall_type_sg, GFP_ATOMIC);
-    virtqueue_kick(vq);
-    while (virtqueue_get_buf(vq, &len) == NULL)
-        ;
+    /* err = virtqueue_add_sgs(vq, sgs, num_out, num_in, */
+                            /* &syscall_type_sg, GFP_ATOMIC); */
+    /* virtqueue_kick(vq); */
+    /* while (virtqueue_get_buf(vq, &len) == NULL) */
+        /* ; */
 
 	/* debug("We said: '%s'", src); */
 	/* debug("Host answered: '%s'", dst); */

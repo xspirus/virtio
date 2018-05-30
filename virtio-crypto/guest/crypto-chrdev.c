@@ -294,11 +294,12 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		/* sgs[num_out++] = &output_msg_sg; */
 		/* sg_init_one(&input_msg_sg, input_msg, MSG_LEN); */
 		/* sgs[num_out + num_in++] = &input_msg_sg; */
-        sess_id = (unsigned int *) arg;
-        /* if (copy_from_user(&sess_id, (unsigned int *) arg, sizeof(unsigned int))) { */
-            /* debug("copy from user fail"); */
-            /* return -EFAULT; */
-        /* } */
+        /* sess_id = (unsigned int *) arg; */
+        sess_id = kzalloc(sizeof(*sess_id), GFP_KERNEL);
+        if (copy_from_user(sess_id, (unsigned int *) arg, sizeof(*sess_id))) {
+            debug("copy from user fail");
+            return -EFAULT;
+        }
         debug("sess id %d", *sess_id);
         sg_init_one(&session_id_sg, sess_id, sizeof(*sess_id));
         sgs[num_out++] = &session_id_sg;

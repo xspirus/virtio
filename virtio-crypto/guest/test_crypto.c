@@ -28,7 +28,7 @@ int fill_urandom_buff(char in[], int size);
 
 static int test_crypto(int cfd)
 {
-    int i;
+    /* int i; */
 	struct session_op sess;
 	struct crypt_op cryp;
 	struct {
@@ -71,10 +71,10 @@ static int test_crypto(int cfd)
     printf("session pointer is %p\n", (void *) &sess);
     printf("key pointer is %p\n", (void *) sess.key);
 
-    for (i = 0; i < KEY_SIZE; i++) {
-        printf("%x\n", data.key[i]);
-    }
-    printf("\n");
+    /* for (i = 0; i < KEY_SIZE; i++) { */
+        /* printf("%x\n", data.key[i]); */
+    /* } */
+    /* printf("\n"); */
 	
 	if (ioctl(cfd, CIOCGSESSION, &sess)) {
 		perror("ioctl(CIOCGSESSION)");

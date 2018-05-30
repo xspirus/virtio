@@ -68,6 +68,7 @@ static int test_crypto(int cfd)
 	sess.keylen = KEY_SIZE;
 	sess.key = (__u8  __user *)data.key;
 
+    printf("session pointer is %p\n", (void *) &sess);
     printf("key pointer is %p\n", (void *) sess.key);
 	
 	if (ioctl(cfd, CIOCGSESSION, &sess)) {

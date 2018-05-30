@@ -210,8 +210,8 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
                   *iv,
                   *dst;
 	unsigned int *syscall_type;
-    struct session_op sess, *arg_ses;
-    struct crypt_op cryp, *arg_cryp;
+    struct session_op sess;
+    struct crypt_op cryp;
 
 	debug("Entering");
 
@@ -251,18 +251,14 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		/* sgs[num_out++] = &output_msg_sg; */
 		/* sg_init_one(&input_msg_sg, input_msg, MSG_LEN); */
 		/* sgs[num_out + num_in++] = &input_msg_sg; */
-        arg_ses = (struct session_op *) arg;
+        /* sess = (struct session_op *) arg; */
         if (copy_from_user(&sess, (struct session_op *) arg, sizeof(struct session_op))) {
             debug("copy from user fail");
             return -EFAULT;
         }
-        debug("session pointer is %p", (void *) &sess);
-        key = kzalloc(sess.keylen, GFP_KERNEL);
-        if (copy_from_user(key, (unsigned char *) arg_ses->key, sess.keylen)) {
-            debug("copy from user fail");
-            return -EFAULT;
-        }
+        key = (unsigned char *) sess.key;
         debug("key pointer is %p", (void *) key);
+        debug("size of key is %d", sess.keylen);
         sg_init_one(&session_key_sg, key, sess.keylen);
         sgs[num_out++] = &session_key_sg;
         sg_init_one(&session_op_sg, &sess, sizeof(sess));
@@ -299,18 +295,15 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		/* sgs[num_out++] = &output_msg_sg; */
 		/* sg_init_one(&input_msg_sg, input_msg, MSG_LEN); */
 		/* sgs[num_out + num_in++] = &input_msg_sg; */
-        arg_cryp = (struct crypt_op *) arg;
-        src  = kzalloc(arg_cryp->len, GFP_KERNEL);
-        dst  = kzalloc(AES_BLOCK_LEN, GFP_KERNEL);
-        iv   = kzalloc(arg_cryp->len, GFP_KERNEL);
-        if (copy_from_user(&cryp, (struct crypt_op *) arg, sizeof(struct crypt_op))
-                || copy_from_user(src, (unsigned char *) arg_cryp->src, arg_cryp->len)
-                || copy_from_user(iv, (unsigned char *) arg_cryp->iv, AES_BLOCK_LEN)
-                || copy_from_user(dst, (unsigned char *) arg_cryp->dst, arg_cryp->len)
-                ) {
+        /* cryp = (struct crypt_op *) arg; */
+        if (copy_from_user(&cryp, (struct crypt_op *) arg, sizeof(struct crypt_op))) {
             debug("copy from user fail");
             return -EFAULT;
         }
+        src  = (unsigned char *) cryp.src;
+        dst  = (unsigned char *) cryp.dst;
+        iv   = (unsigned char *) cryp.iv;
+        debug("data len is %d", cryp.len);
         sg_init_one(&crypt_op_sg, &cryp, sizeof(cryp));
         sgs[num_out++] = &crypt_op_sg;
         sg_init_one(&src_sg, src, cryp.len);
@@ -337,13 +330,15 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 	/* ?? Lock ?? */
     debug("num out %d num in %d", num_out, num_in);
     for (err = 0; err < num_out + num_in; err++) {
-        debug("sgs[%d] has address %p", err, (void *)sgs[err]);
+        debug("sgs[%d] = %p", err, (void *)sgs[err]);
+        debug("sgs[%d].page_link = %u", err, sgs[err].page_link);
+        debug("sgs[%d].length = %u", err, sgs[err].length);
     }
-    /* err = virtqueue_add_sgs(vq, sgs, num_out, num_in, */
-                            /* &syscall_type_sg, GFP_ATOMIC); */
-    /* virtqueue_kick(vq); */
-    /* while (virtqueue_get_buf(vq, &len) == NULL) */
-        /* ; */
+	/* err = virtqueue_add_sgs(vq, sgs, num_out, num_in, */
+							/* &syscall_type_sg, GFP_ATOMIC); */
+	/* virtqueue_kick(vq); */
+	/* while (virtqueue_get_buf(vq, &len) == NULL) */
+		/* [> do nothing <]; */
 
 	/* debug("We said: '%s'", src); */
 	/* debug("Host answered: '%s'", dst); */

@@ -333,7 +333,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         debug("sgs[%d] = %p", err, (void *)sgs[err]);
         debug("sgs[%d]->page_link = %lu", err, sgs[err]->page_link);
         debug("sgs[%d]->length = %u", err, sgs[err]->length);
-        debug("sgs[%d]->dma = %lu", err, sgs[err]->dma_address);
+        debug("sgs[%d]->dma = %lu", err, (unsigned long)sgs[err]->dma_address);
     }
 	/* err = virtqueue_add_sgs(vq, sgs, num_out, num_in, */
 							/* &syscall_type_sg, GFP_ATOMIC); */

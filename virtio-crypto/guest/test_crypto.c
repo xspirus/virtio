@@ -28,7 +28,7 @@ int fill_urandom_buff(char in[], int size);
 
 static int test_crypto(int cfd)
 {
-    int i;
+    /* int i; */
 	struct session_op sess;
 	struct crypt_op cryp;
 	struct {

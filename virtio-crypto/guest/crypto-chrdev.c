@@ -384,6 +384,47 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 
 	kfree(syscall_type);
 
+	switch (cmd) {
+	case CIOCGSESSION:
+		debug("CIOCGSESSION");
+        if (copy_to_user((struct session_op *) arg, (struct session_op *) sess, sizeof(*sess))) {
+            debug("copy to user fail");
+            return -EFAULT;
+        }
+        ret = (long) *host_ret;
+        kfree(sess);
+        kfree(key);
+        kfree(host_ret);
+		break;
+
+	case CIOCFSESSION:
+		debug("CIOCFSESSION");
+        ret = (long) *host_ret;
+        kfree(sess_id);
+        kfree(host_ret);
+		break;
+
+	case CIOCCRYPT:
+		debug("CIOCCRYPT");
+        arg_cryp = (struct crypt_op *) arg;
+        if ( copy_to_user((unsigned char *) arg_cryp->dst, (unsigned char *) dst, arg_cryp->len)) {
+            debug("copy to user fail");
+            return -EFAULT;
+        }
+        ret = (long) *host_ret;
+        kfree(cryp);
+        kfree(src);
+        kfree(iv);
+        kfree(dst);
+        kfree(host_ret);
+		break;
+
+	default:
+		debug("Unsupported ioctl command");
+
+		break;
+	}
+
 	debug("Leaving");
 
 	return ret;

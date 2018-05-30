@@ -265,17 +265,18 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         sess = kzalloc(sizeof(*sess), GFP_KERNEL);
         arg_sess = (struct session_op *) arg;
         key = kzalloc(arg_sess->keylen, GFP_KERNEL);
-        if (copy_from_user(sess, (struct session_op *) arg, sizeof(struct session_op))
-                || copy_from_user(key, (unsigned char *) arg_sess->key, arg_sess->keylen)
-                ) {
+        if (copy_from_user(sess, (struct session_op *) arg, sizeof(struct session_op))) {
             debug("copy from user fail");
             return -EFAULT;
+        }
+        for (err = 0; err < sess->keylen; err++) {
+            key[i] = sess->key[i];
         }
         test = kzalloc(sess->keylen, GFP_KERNEL);
         test[0] = '\0';
         debug("key pointer is %p", (void *) key);
         debug("size of key is %d", sess->keylen);
-        sg_init_one(&session_key_sg, test, sess->keylen);
+        sg_init_one(&session_key_sg, key, sess->keylen);
         sgs[num_out++] = &session_key_sg;
         /* sg_init_one(&session_op_sg, sess, sizeof(*sess)); */
         /* sgs[num_out + num_in++] = &session_op_sg; */

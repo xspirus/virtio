@@ -188,6 +188,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 {
 	long ret = 0;
 	int err, host_ret = 0;
+    int temp1 = 0, temp2 = 0, temp3 = 0;
 	struct crypto_open_file *crof = filp->private_data;
 	struct crypto_device *crdev = crof->crdev;
 	struct virtqueue *vq = crdev->vq;
@@ -202,6 +203,9 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
                        iv_sg,
                        dst_sg,
                        return_sg,
+                       temp1_sg,
+                       temp2_sg,
+                       temp3_sg,
                        *sgs[8];
 	unsigned int num_out, num_in, len;
     unsigned int sess_id;
@@ -267,11 +271,10 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         sgs[num_out + num_in++] = &session_op_sg;
         sg_init_one(&return_sg, &host_ret, sizeof(host_ret));
         sgs[num_out + num_in++] = &return_sg;
-        debug("num out %d num in %d", num_out, num_in);
-        while (num_out + num_in != 8) {
-            sgs[num_out + num_in++] = &return_sg;
-        }
-        debug("num out %d num in %d", num_out, num_in);
+        sg_init_one(&temp1_sg, &temp1, sizeof(temp1));
+        sgs[num_out + num_in++] = &temp1_sg;
+        sg_init_one(&temp2_sg, &temp2, sizeof(temp2));
+        sgs[num_out + num_in++] = &temp2_sg;
 		break;
 
 	case CIOCFSESSION:
@@ -292,9 +295,12 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         sgs[num_out++] = &session_id_sg;
         sg_init_one(&return_sg, &host_ret, sizeof(host_ret));
         sgs[num_out + num_in++] = &return_sg;
-        while (num_out + num_in != 8) {
-            sgs[num_out + num_in++] = &return_sg;
-        }
+        sg_init_one(&temp1_sg, &temp1, sizeof(temp1));
+        sgs[num_out + num_in++] = &temp1_sg;
+        sg_init_one(&temp2_sg, &temp2, sizeof(temp2));
+        sgs[num_out + num_in++] = &temp2_sg;
+        sg_init_one(&temp3_sg, &temp3, sizeof(temp3));
+        sgs[num_out + num_in++] = &temp3_sg;
 		break;
 
 	case CIOCCRYPT:
@@ -343,11 +349,11 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
             debug("sgs[%d] is null", err);
         debug("sgs[%d] has address %p", err, (void *)sgs[err]);
     }
-	/* err = virtqueue_add_sgs(vq, sgs, num_out, num_in, */
-							/* &syscall_type_sg, GFP_ATOMIC); */
-	/* virtqueue_kick(vq); */
-	/* while (virtqueue_get_buf(vq, &len) == NULL) */
-		/* [> do nothing <]; */
+    err = virtqueue_add_sgs(vq, sgs, num_out, num_in,
+                            &syscall_type_sg, GFP_ATOMIC);
+    virtqueue_kick(vq);
+    while (virtqueue_get_buf(vq, &len) == NULL)
+        /* do nothing */ ;
 
 	/* debug("We said: '%s'", src); */
 	/* debug("Host answered: '%s'", dst); */

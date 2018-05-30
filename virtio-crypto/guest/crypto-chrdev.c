@@ -197,7 +197,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
                                 unsigned long arg)
 {
 	long ret = 0;
-	int err, host_ret = 0;
+	int err, *host_ret;
 	struct crypto_open_file *crof = filp->private_data;
 	struct crypto_device *crdev = crof->crdev;
 	struct virtqueue *vq = crdev->vq;
@@ -231,6 +231,8 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 	 **/
 	syscall_type = kzalloc(sizeof(*syscall_type), GFP_KERNEL);
 	*syscall_type = VIRTIO_CRYPTO_SYSCALL_IOCTL;
+    host_ret = kzalloc(sizeof(*host_ret), GFP_KERNEL);
+    *host_ret = 0;
 
 	num_out = 0;
 	num_in = 0;
@@ -280,8 +282,8 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         sgs[num_out++] = &session_key_sg;
         sg_init_one(&session_op_sg, sess, sizeof(*sess));
         sgs[num_out + num_in++] = &session_op_sg;
-        /* sg_init_one(&return_sg, &host_ret, sizeof(host_ret)); */
-        /* sgs[num_out + num_in++] = &return_sg; */
+        sg_init_one(&return_sg, host_ret, sizeof(*host_ret));
+        sgs[num_out + num_in++] = &return_sg;
 		break;
 
 	case CIOCFSESSION:
@@ -300,7 +302,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         debug("sess id %d", *sess_id);
         sg_init_one(&session_id_sg, sess_id, sizeof(*sess_id));
         sgs[num_out++] = &session_id_sg;
-        sg_init_one(&return_sg, &host_ret, sizeof(host_ret));
+        sg_init_one(&return_sg, host_ret, sizeof(*host_ret));
         sgs[num_out + num_in++] = &return_sg;
 		break;
 
@@ -329,7 +331,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         sgs[num_out++] = &iv_sg;
         sg_init_one(&dst_sg, dst, cryp->len);
         sgs[num_out + num_in++] = &dst_sg;
-        sg_init_one(&return_sg, &host_ret, sizeof(host_ret));
+        sg_init_one(&return_sg, host_ret, sizeof(*host_ret));
         sgs[num_out + num_in++] = &return_sg;
 		break;
 

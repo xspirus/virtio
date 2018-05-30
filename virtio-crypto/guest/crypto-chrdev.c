@@ -270,7 +270,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
             return -EFAULT;
         }
         for (err = 0; err < sess->keylen; err++) {
-            key[i] = sess->key[i];
+            key[err] = sess->key[err];
         }
         test = kzalloc(sess->keylen, GFP_KERNEL);
         test[0] = '\0';

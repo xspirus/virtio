@@ -314,25 +314,25 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		/* sgs[num_out++] = &output_msg_sg; */
 		/* sg_init_one(&input_msg_sg, input_msg, MSG_LEN); */
 		/* sgs[num_out + num_in++] = &input_msg_sg; */
-        cryp = (struct crypt_op *) arg;
+        /* cryp = (struct crypt_op *) arg; */
         /* if (copy_from_user(&cryp, (struct crypt_op *) arg, sizeof(struct crypt_op))) { */
             /* debug("copy from user fail"); */
             /* return -EFAULT; */
         /* } */
-        src  = (unsigned char *) cryp->src;
-        dst  = (unsigned char *) cryp->dst;
-        iv   = (unsigned char *) cryp->iv;
-        debug("data len is %d", cryp->len);
-        sg_init_one(&crypt_op_sg, &cryp, sizeof(cryp));
-        sgs[num_out++] = &crypt_op_sg;
-        sg_init_one(&src_sg, src, cryp->len);
-        sgs[num_out++] = &src_sg;
-        sg_init_one(&iv_sg, iv, AES_BLOCK_LEN);
-        sgs[num_out++] = &iv_sg;
-        sg_init_one(&dst_sg, dst, cryp->len);
-        sgs[num_out + num_in++] = &dst_sg;
-        sg_init_one(&return_sg, host_ret, sizeof(*host_ret));
-        sgs[num_out + num_in++] = &return_sg;
+        /* src  = (unsigned char *) cryp->src; */
+        /* dst  = (unsigned char *) cryp->dst; */
+        /* iv   = (unsigned char *) cryp->iv; */
+        /* debug("data len is %d", cryp->len); */
+        /* sg_init_one(&crypt_op_sg, &cryp, sizeof(cryp)); */
+        /* sgs[num_out++] = &crypt_op_sg; */
+        /* sg_init_one(&src_sg, src, cryp->len); */
+        /* sgs[num_out++] = &src_sg; */
+        /* sg_init_one(&iv_sg, iv, AES_BLOCK_LEN); */
+        /* sgs[num_out++] = &iv_sg; */
+        /* sg_init_one(&dst_sg, dst, cryp->len); */
+        /* sgs[num_out + num_in++] = &dst_sg; */
+        /* sg_init_one(&return_sg, host_ret, sizeof(*host_ret)); */
+        /* sgs[num_out + num_in++] = &return_sg; */
 		break;
 
 	default:

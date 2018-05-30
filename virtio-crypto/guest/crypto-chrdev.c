@@ -324,16 +324,32 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         /* dst  = (unsigned char *) cryp->dst; */
         /* iv   = (unsigned char *) cryp->iv; */
         /* debug("data len is %d", cryp->len); */
-        /* sg_init_one(&crypt_op_sg, &cryp, sizeof(cryp)); */
-        /* sgs[num_out++] = &crypt_op_sg; */
-        /* sg_init_one(&src_sg, src, cryp->len); */
-        /* sgs[num_out++] = &src_sg; */
-        /* sg_init_one(&iv_sg, iv, AES_BLOCK_LEN); */
-        /* sgs[num_out++] = &iv_sg; */
-        /* sg_init_one(&dst_sg, dst, cryp->len); */
-        /* sgs[num_out + num_in++] = &dst_sg; */
-        /* sg_init_one(&return_sg, host_ret, sizeof(*host_ret)); */
-        /* sgs[num_out + num_in++] = &return_sg; */
+        arg_cryp = (struct crypt_op *) arg;
+        cryp = kzalloc(sizeof(*cryp), GFP_KERNEL);
+        src = kzalloc(arg_cryp->len, GFP_KERNEL);
+        iv = kzalloc(AES_BLOCK_LEN, GFP_KERNEL);
+        dst = kzalloc(arg_cryp->len, GFP_KERNEL);
+        if ( copy_from_user(cryp, (struct crypt_op *) arg, sizeof(*cryp))
+                || copy_from_user(src, (unsigned char *) arg_cryp->src, arg_cryp->len)
+                || copy_from_user(iv, (unsigned char *) arg_cryp->iv, AES_BLOCK_LEN)
+                || copy_from_user(dst, (unsigned char *) arg_cryp->dst, arg_cryp->len)
+                ) {
+            debug("copy from user fail");
+            return -EFAULT;
+        }
+        cryp->src = src;
+        cryp->iv = iv;
+        cryp->dst = dst;
+        sg_init_one(&crypt_op_sg, cryp, sizeof(*cryp));
+        sgs[num_out++] = &crypt_op_sg;
+        sg_init_one(&src_sg, src, cryp->len);
+        sgs[num_out++] = &src_sg;
+        sg_init_one(&iv_sg, iv, AES_BLOCK_LEN);
+        sgs[num_out++] = &iv_sg;
+        sg_init_one(&dst_sg, dst, cryp->len);
+        sgs[num_out + num_in++] = &dst_sg;
+        sg_init_one(&return_sg, host_ret, sizeof(*host_ret));
+        sgs[num_out + num_in++] = &return_sg;
 		break;
 
 	default:

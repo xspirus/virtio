@@ -72,7 +72,7 @@ static int test_crypto(int cfd)
     printf("key pointer is %p\n", (void *) sess.key);
 
     for (i = 0; i < KEY_SIZE; i++) {
-        printf("%x", data.key[i]);
+        printf("%x\n", data.key[i]);
     }
     printf("\n");
 	

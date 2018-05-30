@@ -116,6 +116,11 @@ static int crypto_chrdev_open(struct inode *inode, struct file *filp)
     sgs[0] = &syscall_type_sg;
     sgs[1] = &host_fd_sg;
 
+    debug("sgs[%d] = %p", 1, (void *)sgs[1]);
+    debug("sgs[%d]->page_link = %lu", 1, sgs[1]->page_link);
+    debug("sgs[%d]->length = %u", 1, sgs[1]->length);
+    debug("sgs[%d]->dma = %lu", 1, (unsigned long)sgs[1]->dma_address);
+
 	/**
 	 * Wait for the host to process our data.
 	 **/

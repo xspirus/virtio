@@ -232,10 +232,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 	syscall_type = kzalloc(sizeof(*syscall_type), GFP_KERNEL);
 	*syscall_type = VIRTIO_CRYPTO_SYSCALL_IOCTL;
 	command = kzalloc(sizeof(*command), GFP_KERNEL);
-    if ( copy_from_user(command, &cmd, sizeof(*command)) ) {
-        debug("copy from user fail");
-        return -EFAULT;
-    }
+    *command = cmd;
     host_ret = kzalloc(sizeof(*host_ret), GFP_KERNEL);
     *host_ret = 0;
 

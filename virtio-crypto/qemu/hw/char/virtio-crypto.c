@@ -92,6 +92,7 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
 		/* ?? */
         cfd = (int *) elem.out_sg[1].iov_base;
         cmd = (unsigned int *) elem.out_sg[2].iov_base;
+        printf("file descriptor is %d", *cfd);
         printf("command is %u", *cmd);
         if (*cmd == CIOCGSESSION) {
             key          = (unsigned char *) elem.out_sg[3].iov_base;

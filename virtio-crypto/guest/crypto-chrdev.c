@@ -256,9 +256,11 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
     sg_init_one(&ioctl_cmd_sg, &cmd, sizeof(cmd));
     sgs[num_out++] = &ioctl_cmd_sg;
 
-    debug("syscall_type_sg %p", (void *)&syscall_type_sg);
-    debug("host_fd_sg %p", (void *)&host_fd_sg);
-    debug("ioctl_cmd_sg %p", (void *)&ioctl_cmd_sg);
+    debug("command is %u", cmd);
+
+    /* debug("syscall_type_sg %p", (void *)&syscall_type_sg); */
+    /* debug("host_fd_sg %p", (void *)&host_fd_sg); */
+    /* debug("ioctl_cmd_sg %p", (void *)&ioctl_cmd_sg); */
 
 	/**
 	 *  Add all the cmd specific sg lists.
@@ -284,8 +286,8 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         sess->key = key;
         /* sess = (struct session_op *) arg; */
         /* key = (unsigned char *) sess->key; */
-        debug("key pointer is %p", (void *) key);
-        debug("size of key is %d", sess->keylen);
+        /* debug("key pointer is %p", (void *) key); */
+        /* debug("size of key is %d", sess->keylen); */
         sg_init_one(&session_key_sg, key, sess->keylen);
         sgs[num_out++] = &session_key_sg;
         sg_init_one(&session_op_sg, sess, sizeof(*sess));
@@ -372,13 +374,13 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 	 **/
 	/* ?? */
 	/* ?? Lock ?? */
-    debug("num out %d num in %d", num_out, num_in);
-    for (err = 0; err < num_out + num_in; err++) {
-        debug("sgs[%d] = %p", err, (void *)sgs[err]);
-        debug("sgs[%d]->page_link = %lu", err, sgs[err]->page_link);
-        debug("sgs[%d]->offset = %u", err, sgs[err]->offset);
-        debug("sgs[%d]->length = %u", err, sgs[err]->length);
-    }
+    /* debug("num out %d num in %d", num_out, num_in); */
+    /* for (err = 0; err < num_out + num_in; err++) { */
+        /* debug("sgs[%d] = %p", err, (void *)sgs[err]); */
+        /* debug("sgs[%d]->page_link = %lu", err, sgs[err]->page_link); */
+        /* debug("sgs[%d]->offset = %u", err, sgs[err]->offset); */
+        /* debug("sgs[%d]->length = %u", err, sgs[err]->length); */
+    /* } */
     /* num_out = 4; */
     /* num_in = 0; */
     err = virtqueue_add_sgs(vq, sgs, num_out, num_in,
@@ -420,16 +422,16 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
             debug("copy to user fail");
             return -EFAULT;
         }
-        printk("\nSource:\n");
-        for (err = 0; err < arg_cryp->len; err++) {
-            printk("%x", src[err]);
-        }
-        printk("\n");
-        printk("\nDestination:\n");
-        for (err = 0; err < arg_cryp->len; err++) {
-            printk("%x", dst[err]);
-        }
-        printk("\n");
+        /* printk("\nSource:\n"); */
+        /* for (err = 0; err < arg_cryp->len; err++) { */
+            /* printk("%x", src[err]); */
+        /* } */
+        /* printk("\n"); */
+        /* printk("\nDestination:\n"); */
+        /* for (err = 0; err < arg_cryp->len; err++) { */
+            /* printk("%x", dst[err]); */
+        /* } */
+        /* printk("\n"); */
         ret = (long) *host_ret;
         kfree(cryp);
         kfree(src);

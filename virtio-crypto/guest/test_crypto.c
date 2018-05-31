@@ -20,7 +20,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#define DATA_SIZE       32
+#define DATA_SIZE       16384
 #define BLOCK_SIZE      16
 #define KEY_SIZE        24
 
@@ -28,7 +28,7 @@ int fill_urandom_buff(char in[], int size);
 
 static int test_crypto(int cfd)
 {
-    int i;
+    /* int i; */
 	struct session_op sess;
 	struct crypt_op cryp;
 	struct {
@@ -68,8 +68,8 @@ static int test_crypto(int cfd)
 	sess.keylen = KEY_SIZE;
 	sess.key = (__u8  __user *)data.key;
 
-    printf("session pointer is %p\n", (void *) &sess);
-    printf("key pointer is %p\n", (void *) sess.key);
+    /* printf("session pointer is %p\n", (void *) &sess); */
+    /* printf("key pointer is %p\n", (void *) sess.key); */
 
     /* for (i = 0; i < KEY_SIZE; i++) { */
         /* printf("%x\n", data.key[i]); */
@@ -92,20 +92,20 @@ static int test_crypto(int cfd)
 	cryp.dst = (__u8 __user *)data.encrypted;
 	cryp.iv = (__u8 __user *)data.iv;
 	cryp.op = COP_ENCRYPT;
-    printf("\nOriginal data:\n");
-    for (i = 0; i < DATA_SIZE; i++)
-        printf("%x", data.in[i]);
-    printf("\n");
+    /* printf("\nOriginal data:\n"); */
+    /* for (i = 0; i < DATA_SIZE; i++) */
+        /* printf("%x", data.in[i]); */
+    /* printf("\n"); */
 	if (ioctl(cfd, CIOCCRYPT, &cryp)) {
 		perror("ioctl(CIOCCRYPT)");
 		return 1;
 	}
 	printf("[OK]\n");
 	
-    printf("\nEncrypted data:\n");
-    for (i = 0; i < DATA_SIZE; i++)
-        printf("%x", data.encrypted[i]);
-    printf("\n");
+    /* printf("\nEncrypted data:\n"); */
+    /* for (i = 0; i < DATA_SIZE; i++) */
+        /* printf("%x", data.encrypted[i]); */
+    /* printf("\n"); */
 	/**
 	 *  Decrypt data.encrypted to data.decrypted
 	 **/
@@ -120,10 +120,10 @@ static int test_crypto(int cfd)
 	}
 	printf("[OK]\n");
 	
-    printf("\nDecrypted data:\n");
-    for (i = 0; i < DATA_SIZE; i++)
-        printf("%x", data.decrypted[i]);
-    printf("\n");
+    /* printf("\nDecrypted data:\n"); */
+    /* for (i = 0; i < DATA_SIZE; i++) */
+        /* printf("%x", data.decrypted[i]); */
+    /* printf("\n"); */
 	/**
 	 *  Verify the result
 	 **/

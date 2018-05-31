@@ -197,7 +197,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
                                 unsigned long arg)
 {
 	long ret = 0;
-	int err, *host_ret;
+	int err, *command, *host_ret;
 	struct crypto_open_file *crof = filp->private_data;
 	struct crypto_device *crdev = crof->crdev;
 	struct virtqueue *vq = crdev->vq;
@@ -231,6 +231,11 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 	 **/
 	syscall_type = kzalloc(sizeof(*syscall_type), GFP_KERNEL);
 	*syscall_type = VIRTIO_CRYPTO_SYSCALL_IOCTL;
+	command = kzalloc(sizeof(*command), GFP_KERNEL);
+    if ( copy_from_user(command, &cmd, sizeof(*command)) ) {
+        debug("copy from user fail");
+        return -EFAULT;
+    }
     host_ret = kzalloc(sizeof(*host_ret), GFP_KERNEL);
     *host_ret = 0;
 
@@ -253,7 +258,7 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 	/* ?? */
     sg_init_one(&host_fd_sg, &crof->host_fd, sizeof(crof->host_fd));
     sgs[num_out++] = &host_fd_sg;
-    sg_init_one(&ioctl_cmd_sg, &cmd, sizeof(cmd));
+    sg_init_one(&ioctl_cmd_sg, command, sizeof(*command));
     sgs[num_out++] = &ioctl_cmd_sg;
 
     debug("command is %u", cmd);

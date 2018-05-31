@@ -47,7 +47,7 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
 {
 	VirtQueueElement elem;
 	unsigned int *syscall_type;
-    int *cfd, *ret;
+    int *cfd, *ret, i;
     unsigned int *sess_id, *cmd;
     unsigned char *key,
                   *src,
@@ -77,7 +77,7 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
             *cfd = -1;
         }
         DEBUG("opened file descriptor");
-        printf("file descriptor opened is %d", *cfd);
+        printf("file descriptor opened is %d\n", *cfd);
 		break;
 
 	case VIRTIO_CRYPTO_SYSCALL_TYPE_CLOSE:
@@ -90,11 +90,6 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
 	case VIRTIO_CRYPTO_SYSCALL_TYPE_IOCTL:
 		DEBUG("VIRTIO_CRYPTO_SYSCALL_TYPE_IOCTL");
 		/* ?? */
-		/* unsigned char *output_msg = elem.out_sg[1].iov_base; */
-		/* unsigned char *input_msg = elem.in_sg[0].iov_base; */
-		/* memcpy(input_msg, "Host: Welcome to the virtio World!", 35); */
-		/* printf("Guest says: %s\n", output_msg); */
-		/* printf("We say: %s\n", input_msg); */
         cfd = (int *) elem.out_sg[1].iov_base;
         cmd = (unsigned int *) elem.out_sg[2].iov_base;
         if (*cmd == CIOCGSESSION) {
@@ -104,10 +99,12 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
             sess->key    = key;
             sess->keylen = elem.out_sg[3].iov_len;
             *ret         = ioctl(*cfd, CIOCGSESSION, sess);
+            printf("gonna return session id %d\n", sess->ses);
         } else if (*cmd == CIOCFSESSION) {
             sess_id = (unsigned int *) elem.out_sg[3].iov_base;
             ret     = (int *) elem.in_sg[0].iov_base;
             *ret    = ioctl(*cfd, CIOCFSESSION, sess_id);
+            printf("session id is %d\n", *sess_id);
         } else if (*cmd == CIOCCRYPT) {
             cryp      = (struct crypt_op *) elem.out_sg[3].iov_base;
             src       = (unsigned char *) elem.out_sg[4].iov_base;
@@ -118,6 +115,16 @@ static void vq_handle_output(VirtIODevice *vdev, VirtQueue *vq)
             cryp->dst = dst;
             ret       = (int *) elem.in_sg[1].iov_base;
             *ret      = ioctl(*cfd, CIOCCRYPT, cryp);
+            printf("\nSource Data:\n");
+            for (i = 0; i < cryp->len; i++) {
+                printf("%x", cryp->src[i]);
+            }
+            printf("\n");
+            printf("\nDestination Data:\n");
+            for (i = 0; i < cryp->len; i++) {
+                printf("%x", cryp->dst[i]);
+            }
+            printf("\n");
         }
 		break;
 

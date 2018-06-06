@@ -1,6 +1,8 @@
 #ifndef _CRYPTO_H
 #define _CRYPTO_H
 
+#include <linux/semaphore.h>
+
 #define VIRTIO_CRYPTO_BLOCK_SIZE    16
 
 #define VIRTIO_CRYPTO_SYSCALL_OPEN  0
@@ -37,6 +39,7 @@ struct crypto_device {
 
 	struct virtqueue *vq;
 	/* ?? Lock ?? */
+    struct semaphore lock;
 
 	/* The minor number of the device. */
 	unsigned int minor;

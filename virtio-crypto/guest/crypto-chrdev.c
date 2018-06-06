@@ -351,13 +351,14 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
         /* debug("sgs[%d]->offset = %u", err, sgs[err]->offset); */
         /* debug("sgs[%d]->length = %u", err, sgs[err]->length); */
     /* } */
-    down_interruptible(crdev->lock);
+    if ( down_interruptible(&crdev->lock) )
+        return -ERESTARTSYS;
     err = virtqueue_add_sgs(vq, sgs, num_out, num_in,
                             &syscall_type_sg, GFP_ATOMIC);
     virtqueue_kick(vq);
     while (virtqueue_get_buf(vq, &len) == NULL)
         ;
-    up(crdev->lock);
+    up(&crdev->lock);
 
 	/* debug("We said: '%s'", src); */
 	/* debug("Host answered: '%s'", dst); */

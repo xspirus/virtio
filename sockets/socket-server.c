@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
 	}
 	fprintf(stderr, "Bound TCP socket to port %d\n", TCP_PORT);
 
-    cfd = open(filename, O_RDONLY);
+    int cfd = open(filename, O_RDONLY);
 
     memset(&sess, 0, sizeof(sess));
     memset(&cryp, 0, sizeof(cryp));

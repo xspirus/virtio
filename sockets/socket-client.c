@@ -61,8 +61,6 @@ int main(int argc, char *argv[])
     struct session_op sess;
     struct crypt_op cryp;
 
-    int cfd = open("/dev/cryptodev0", O_RDONLY);
-
 	if (argc != 3) {
 		fprintf(stderr, "Usage: %s hostname port\n", argv[0]);
 		exit(1);
@@ -70,7 +68,7 @@ int main(int argc, char *argv[])
 	hostname = argv[1];
 	port = atoi(argv[2]); /* Needs better error checking */
 
-    filename = (argv[1] == NULL) ? "/dev/crypto" : argv[3];
+    filename = (argv[3] == NULL) ? "/dev/crypto" : argv[3];
 
 	/* Create TCP/IP socket, used as main chat channel */
 	if ((sd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {
@@ -95,6 +93,8 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 	fprintf(stderr, "Connected.\n");
+
+    int cfd = open(filename, O_RDONLY);
 
     memset(&sess, 0, sizeof(sess));
     memset(&cryp, 0, sizeof(cryp));

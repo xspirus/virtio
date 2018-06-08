@@ -72,8 +72,6 @@ int main(int argc, char *argv[])
 
     filename = (argv[1] == NULL) ? "/dev/crypto" : argv[1];
 
-    int cfd = open("/dev/cryptodev0", O_RDONLY);
-	
 	/* Make sure a broken connection doesn't kill us */
 	signal(SIGPIPE, SIG_IGN);
 
@@ -94,6 +92,8 @@ int main(int argc, char *argv[])
 		exit(1);
 	}
 	fprintf(stderr, "Bound TCP socket to port %d\n", TCP_PORT);
+
+    cfd = open(filename, O_RDONLY);
 
     memset(&sess, 0, sizeof(sess));
     memset(&cryp, 0, sizeof(cryp));

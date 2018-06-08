@@ -111,7 +111,7 @@ int main(void)
     struct {
         unsigned char 
             encrypted[DATA_SIZE],
-            decrypted[DATA_SIZE]
+            decrypted[DATA_SIZE];
     } data;
 
 	/* Listen for incoming connections */

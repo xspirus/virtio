@@ -112,7 +112,7 @@ int main(int argc, char *argv[])
     struct {
         unsigned char 
             encrypted[DATA_SIZE],
-            decrypted[DATA_SIZE]
+            decrypted[DATA_SIZE];
     } data;
 
     int activity, i = 0;

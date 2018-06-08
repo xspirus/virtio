@@ -260,11 +260,11 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 	case CIOCGSESSION:
 		debug("CIOCGSESSION");
         sess = kzalloc(sizeof(*sess), GFP_KERNEL);
-        key = kzalloc(arg_sess->keylen, GFP_KERNEL);
         if (copy_from_user(sess, (struct session_op *) arg, sizeof(struct session_op))) {
             debug("copy session from user fail");
             return -EFAULT;
         }
+        key = kzalloc(sess->keylen, GFP_KERNEL);
         if (copy_from_user(key, (unsigned char *) sess->key, sess->keylen)) {
             debug("copy key from user fail");
         }
@@ -296,13 +296,13 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
 		debug("CIOCCRYPT");
         arg_cryp = (struct crypt_op *) arg;
         cryp = kzalloc(sizeof(*cryp), GFP_KERNEL);
-        src = kzalloc(arg_cryp->len, GFP_KERNEL);
-        iv = kzalloc(AES_BLOCK_LEN, GFP_KERNEL);
-        dst = kzalloc(arg_cryp->len, GFP_KERNEL);
         if ( copy_from_user(cryp, (struct crypt_op *) arg, sizeof(*cryp)) ) {
             debug("copy crypto from user fail");
             return -EFAULT;
         }
+        src = kzalloc(cryp->len, GFP_KERNEL);
+        iv = kzalloc(AES_BLOCK_LEN, GFP_KERNEL);
+        dst = kzalloc(cryp->len, GFP_KERNEL);
         if ( copy_from_user(src, (unsigned char *) cryp->src, cryp->len) ) {
             debug("copy src from user fail");
             return -EFAULT;

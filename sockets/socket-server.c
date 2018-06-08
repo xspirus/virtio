@@ -54,10 +54,11 @@ ssize_t insist_write(int fd, const void *buf, size_t cnt)
 	return orig_cnt;
 }
 
-int main(void)
+int main(int argc, char *argv[])
 {
 	unsigned char buf[DATA_SIZE];
 	char addrstr[INET_ADDRSTRLEN];
+    char *filename;
 	int sd, newsd;
 	ssize_t n;
 	socklen_t len;
@@ -68,6 +69,8 @@ int main(void)
      */
     struct session_op sess;
     struct crypt_op cryp;
+
+    filename = (argv[1] == NULL) ? "/dev/crypto" : argv[1];
 
     int cfd = open("/dev/cryptodev0", O_RDONLY);
 	

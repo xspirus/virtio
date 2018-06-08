@@ -51,6 +51,7 @@ int main(int argc, char *argv[])
 	ssize_t n;
 	unsigned char buf[DATA_SIZE];
 	char *hostname;
+    char *filename;
 	struct hostent *hp;
 	struct sockaddr_in sa;
 
@@ -68,6 +69,8 @@ int main(int argc, char *argv[])
 	}
 	hostname = argv[1];
 	port = atoi(argv[2]); /* Needs better error checking */
+
+    filename = (argv[1] == NULL) ? "/dev/crypto" : argv[3];
 
 	/* Create TCP/IP socket, used as main chat channel */
 	if ((sd = socket(PF_INET, SOCK_STREAM, 0)) < 0) {

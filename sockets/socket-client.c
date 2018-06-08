@@ -61,10 +61,11 @@ int main(int argc, char *argv[])
     struct session_op sess;
     struct crypt_op cryp;
 
-	if (argc != 3) {
+	if (argc < 3) {
 		fprintf(stderr, "Usage: %s hostname port\n", argv[0]);
 		exit(1);
 	}
+
 	hostname = argv[1];
 	port = atoi(argv[2]); /* Needs better error checking */
 

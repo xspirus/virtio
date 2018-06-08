@@ -308,14 +308,13 @@ static long crypto_chrdev_ioctl(struct file *filp, unsigned int cmd,
             return -EFAULT;
         }
         if ( copy_from_user(iv, (unsigned char *) cryp->iv, AES_BLOCK_LEN) ) {
-            debug("copy src from user fail");
+            debug("copy iv from user fail");
             return -EFAULT;
         }
         if ( copy_from_user(dst, (unsigned char *) cryp->dst, cryp->len) ) {
-            debug("copy src from user fail");
+            debug("copy dst from user fail");
             return -EFAULT;
         }
-        old_dst   = cryp->dst;
         cryp->src = src;
         cryp->iv  = iv;
         cryp->dst = dst;

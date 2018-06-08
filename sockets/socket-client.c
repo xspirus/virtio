@@ -53,10 +53,14 @@ int main(int argc, char *argv[])
 	char *hostname;
 	struct hostent *hp;
 	struct sockaddr_in sa;
+
+    /**
+     * Crypto
+     */
     struct session_op sess;
     struct crypt_op cryp;
 
-    int cfd = open("/dev/crypto", O_RDONLY);
+    int cfd = open("/dev/cryptodev0", O_RDONLY);
 
 	if (argc != 3) {
 		fprintf(stderr, "Usage: %s hostname port\n", argv[0]);
@@ -94,7 +98,7 @@ int main(int argc, char *argv[])
 
     sess.cipher = CRYPTO_AES_CBC;
     sess.keylen = KEY_SIZE;
-    sess.key = KEY;
+    sess.key    = KEY;
 
 	if (ioctl(cfd, CIOCGSESSION, &sess)) {
 		perror("ioctl(CIOCGSESSION)");
@@ -103,13 +107,23 @@ int main(int argc, char *argv[])
 
     cryp.ses = sess.ses;
     cryp.len = DATA_SIZE;
-    cryp.iv = IV;
+    cryp.iv  = IV;
+
+    struct {
+        unsigned char 
+            encrypted[DATA_SIZE],
+            decrypted[DATA_SIZE]
+    } data;
 
     int activity, i = 0;
     /**
      * Eternal loop
      */
     for (;;) {
+        /**
+         * readfds is used to select
+         * which fd is ready to be read
+         */
         fd_set readfds;
 
         FD_ZERO(&readfds);
@@ -117,6 +131,7 @@ int main(int argc, char *argv[])
         FD_SET(0, &readfds);
         FD_SET(sd, &readfds);
 
+        /* check if some fd is ready */
         activity = select(sd + 1, &readfds, NULL, NULL, NULL);
 
         if (activity < 0) {
@@ -126,7 +141,8 @@ int main(int argc, char *argv[])
 
         if (FD_ISSET(0, &readfds)) {
             /**
-             * Read from stdin
+             * Read from stdin.
+             * Reads until newline ('\n')
              */
             for (;;) {
                 n = read(0, buf, sizeof(buf));
@@ -137,34 +153,31 @@ int main(int argc, char *argv[])
                 }
 
                 int k;
+                /* Fill remaining of buffer */
                 for (k = n; k < DATA_SIZE; k++)
                     buf[k] = 0;
 
+                /* In error break */
                 if (n <= 0)
                     break;
 
-                struct {
-                    unsigned char in[DATA_SIZE],
-                                encrypted[DATA_SIZE],
-                                decrypted[DATA_SIZE],
-                                iv[BLOCK_SIZE],
-                                key[KEY_SIZE];
-                } data;
-
                 cryp.src = buf;
                 cryp.dst = data.encrypted;
-                cryp.op = COP_ENCRYPT;
+                cryp.op  = COP_ENCRYPT;
 
+                /* call ioctl for encryption */
                 if (ioctl(cfd, CIOCCRYPT, &cryp)) {
                     perror("ioctl(CIOCCRYPT)");
                     return 1;
                 }
 
+                /* write results to file descriptor of socket */
                 if (insist_write(sd, data.encrypted, DATA_SIZE) != DATA_SIZE) {
                     perror("write");
                     exit(1);
                 }
 
+                /* if last char read is newline then stop reading */
                 if (buf[n - 1] == '\n')
                     break;
             }
@@ -174,7 +187,9 @@ int main(int argc, char *argv[])
         if (FD_ISSET(sd, &readfds)) {
             /**
              * Read from socket
+             * Reads until newline is found
              */
+            /* i is used to print 'Other' only once */
             i = 0;
             for (;;) {
                 n = read(sd, buf, sizeof(buf));
@@ -190,28 +205,23 @@ int main(int argc, char *argv[])
                     i++;   
                 }
 
-                struct {
-                    unsigned char in[DATA_SIZE],
-                                encrypted[DATA_SIZE],
-                                decrypted[DATA_SIZE],
-                                iv[BLOCK_SIZE],
-                                key[KEY_SIZE];
-                } data;
-
                 cryp.src = buf;
                 cryp.dst = data.decrypted;
-                cryp.op = COP_DECRYPT;
+                cryp.op  = COP_DECRYPT;
 
+                /* call ioctl for decryption */
                 if (ioctl(cfd, CIOCCRYPT, &cryp)) {
                     perror("ioctl(CIOCCRYPT)");
                     return 1;
                 }
 
+                /* write results to stdout*/
                 if (insist_write(1, data.decrypted, n) != n) {
                     perror("write");
                     exit(1);
                 }
 
+                /* check if newline found */
                 int j, found = 0;
                 for (j = 0; j < DATA_SIZE; j++) {
                     if (data.decrypted[j] == '\n') {
@@ -226,35 +236,10 @@ int main(int argc, char *argv[])
 
     }
 
-	/* Be careful with buffer overruns, ensure NUL-termination */
-	/* strncpy(buf, HELLO_THERE, sizeof(buf)); */
-	/* buf[sizeof(buf) - 1] = '\0'; */
-
-	/* [> Say something... <] */
-	/* if (insist_write(sd, buf, strlen(buf)) != strlen(buf)) { */
-		/* perror("write"); */
-		/* exit(1); */
-	/* } */
-	/* fprintf(stdout, "I said:\n%s\nRemote says:\n", buf); */
-	/* fflush(stdout); */
-
-	/* [> Read answer and write it to standard output <] */
-	/* for (;;) { */
-		/* n = read(sd, buf, sizeof(buf)); */
-
-		/* if (n < 0) { */
-			/* perror("read"); */
-			/* exit(1); */
-		/* } */
-
-		/* if (n <= 0) */
-			/* break; */
-
-		/* if (insist_write(0, buf, n) != n) { */
-			/* perror("write"); */
-			/* exit(1); */
-		/* } */
-	/* } */
+	if (ioctl(cfd, CIOCFSESSION, &sess.ses)) {
+		perror("ioctl(CIOCFSESSION)");
+		return 1;
+	}
 
 	/*
 	 * Let the remote know we're not going to write anything else.
@@ -262,6 +247,11 @@ int main(int argc, char *argv[])
 	 */
     if (shutdown(sd, SHUT_WR) < 0) {
         perror("shutdown");
+        exit(1);
+    }
+
+    if (close(cfd) < 0) {
+        perror("close");
         exit(1);
     }
 
